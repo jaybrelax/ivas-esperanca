@@ -30,6 +30,7 @@
     removeParticipantFromEvento, 
     editParticipantInEvento,
     isSupabaseConfigured,
+    getSupabaseClient,
     formatDateBr,
     generateId
   } from '@/lib/db';
@@ -120,6 +121,34 @@
         }
       }
       loadData();
+    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // Real-time subscription for live updates
+    useEffect(() => {
+      const sb = getSupabaseClient();
+      if (!sb) return;
+
+      const handleRealtimeChange = () => {
+        (async () => {
+          const activeEv = await getNextActiveEvento();
+          setActiveEvent(activeEv);
+          const list = await listAllEventos();
+          setAllEvents(list);
+        })();
+      };
+
+      const channel = sb
+        .channel('public-eventos-changes')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'eventos' },
+          handleRealtimeChange
+        )
+        .subscribe();
+
+      return () => {
+        sb.removeChannel(channel);
+      };
     }, []);
 
     // Countdown timer clock

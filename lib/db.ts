@@ -77,6 +77,10 @@ export const isSupabaseConfigured = (): boolean => {
   return getSupabase() !== null;
 };
 
+export const getSupabaseClient = (): SupabaseClient | null => {
+  return getSupabase();
+};
+
 // Upload image to Supabase Storage bucket "img" and return public URL
 export async function uploadImage(file: File, folder: string = 'branding'): Promise<string | null> {
   const sb = getSupabase();

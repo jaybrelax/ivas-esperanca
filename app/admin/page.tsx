@@ -31,6 +31,7 @@ import {
   deleteEvento, 
   getNextFridayDate,
   isSupabaseConfigured,
+  getSupabaseClient,
   generateId,
   formatDateBr,
   uploadImage
@@ -147,6 +148,26 @@ export default function AdminDashboard() {
       loadStatsAndData();
     }, 0);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Real-time subscription for live updates
+  useEffect(() => {
+    const sb = getSupabaseClient();
+    if (!sb) return;
+
+    const channel = sb
+      .channel('eventos-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'eventos' },
+        () => {
+          loadStatsAndData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      sb.removeChannel(channel);
+    };
   }, []);
 
   // Update selected event whenever it exists
