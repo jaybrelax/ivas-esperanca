@@ -32,12 +32,12 @@ export interface ConfigMarca {
 
 // Default values for brand configuration
 export const DEFAULT_CONFIG: ConfigMarca = {
-  titulo: "Encontro de Sexta-Feira",
-  sub_titulo: "Garanta seu nome na lista para o próximo evento de sexta!",
-  titulo_2: "Vem pro evento mais esperado da semana!",
-  logo_url: "https://picsum.photos/seed/eventlogo/200/200", // Default beautiful placeholder
-  banner_url: "https://picsum.photos/seed/eventbanner/1200/450", // Default beautiful banner placeholder
-  copyright: "© 2026 Todos os direitos reservados. Gestor de Eventos.",
+  titulo: "Cadeia de Oração",
+  sub_titulo: "Virtude da Esperança",
+  titulo_2: "Carregando lista...",
+  logo_url: "https://tptwonotfxzevqswuhvg.supabase.co/storage/v1/object/public/img/branding/1780529469016-yjawbm.png", // Default beautiful placeholder
+  banner_url: "https://tptwonotfxzevqswuhvg.supabase.co/storage/v1/object/public/img/branding/1780530541280-jbwqn3.webp", // Default beautiful banner placeholder
+  copyright: "© 2026 Todos os direitos reservados. IVAS.",
   nomes_fixo: [],
   light_mode: false
 };

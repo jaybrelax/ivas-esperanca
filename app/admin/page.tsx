@@ -815,13 +815,24 @@ export default function AdminDashboard() {
                               })()}
                             </div>
 
-                            <button
-                              onClick={() => setDeletingEvent({ id: selectedEvent.id, numero: selectedEvent.numero })}
-                              className="mt-20 text-[10px] font-bold text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5 px-1 cursor-pointer"
-                            >
-                              <Trash2 size={12} />
-                              Excluir esta oração
-                            </button>
+                            <div className="flex justify-between items-center mt-20">
+                              <button
+                                onClick={() => setDeletingEvent({ id: selectedEvent.id, numero: selectedEvent.numero })}
+                                className="text-[10px] font-bold text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5 px-1 cursor-pointer"
+                              >
+                                <Trash2 size={12} />
+                                Excluir esta lista
+                              </button>
+
+                              <a
+                                href="/"
+                                target="_blank"
+                                className="text-xs font-bold text-indigo-400/60 hover:text-indigo-400 border border-indigo-400/20 hover:border-indigo-400/40 rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 cursor-pointer"
+                              >
+                                <Eye size={14} />
+                                Visualizar página
+                              </a>
+                            </div>
 
                           </div>
                         ) : (

@@ -16,7 +16,10 @@
     Database, 
     ShieldCheck,
     Zap,
-    AlertTriangle
+    AlertTriangle,
+    Monitor,
+    Sun,
+    Moon
   } from 'lucide-react';
   import { 
     Evento, 
@@ -74,6 +77,10 @@
     // Custom non-blocking confirmations inside the preview iframe/sandbox
     const [deletingParticipant, setDeletingParticipant] = useState<{ id: string; nome: string } | null>(null);
     const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+    // Theme preference: 'system' | 'light' | 'dark'
+    const [themePreference, setThemePreference] = useState<'system' | 'light' | 'dark'>('system');
+    const [systemIsLight, setSystemIsLight] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
     // Nomes adicionados nesta sessão (para esconder do painel de pré-salvos, sem apagar do localStorage)
     const [addedThisSession, setAddedThisSession] = useState<string[]>([]);
@@ -179,16 +186,26 @@
       return () => clearInterval(timer);
     }, [activeEvent]);
 
+    // Detect system color scheme preference
+    useEffect(() => {
+      const mq = window.matchMedia('(prefers-color-scheme: light)');
+      setSystemIsLight(mq.matches);
+      const handler = (e: MediaQueryListEvent) => setSystemIsLight(e.matches);
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
+    }, []);
+
     // Sync body background for light mode
     useEffect(() => {
-      if (config?.light_mode) {
+      const isLight = themePreference === 'system' ? systemIsLight : themePreference === 'light';
+      if (isLight) {
         document.body.style.background = '#f1f5f9';
         document.body.style.color = '#0f172a';
       } else {
         document.body.style.background = '';
         document.body.style.color = '';
       }
-    }, [config?.light_mode]);
+    }, [systemIsLight, themePreference]);
 
     // Focus input and scroll when form appears
     useEffect(() => {
@@ -347,6 +364,9 @@
       showToast("Nomes recomendados limpos.");
     };
 
+    // Compute effective theme
+    const effectiveLight = themePreference === 'system' ? systemIsLight : themePreference === 'light';
+
     // Categorize names by Gender, filtered by search query
     const query = searchQuery.toLowerCase().trim();
     const allParticipants = [
@@ -361,7 +381,7 @@
 
 
     return (
-      <div className={`min-h-screen bg-transparent text-white flex flex-col justify-between selection:bg-indigo-500 selection:text-white ${config?.light_mode ? 'light-mode' : ''}`} id="public-main-root">
+      <div className={`min-h-screen bg-transparent text-white flex flex-col justify-between selection:bg-indigo-500 selection:text-white ${effectiveLight ? 'light-mode' : ''}`} id="public-main-root">
         
 
 
@@ -666,7 +686,7 @@
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl" id="unified-list-card">
                 <div className="bg-white/5 border-b border-white/10 py-3 px-4 flex justify-between items-center">
                   <span className="font-bold text-xs uppercase tracking-widest text-indigo-300 flex items-center gap-1.5">
-                    <Users size={16} /> Lista de Participantes
+                    <Users size={16} /> Lista de Intercessados
                   </span>
                   <span className="bg-indigo-500/20 text-indigo-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full font-mono border border-indigo-500/20">
                     {filteredParticipants.length} {filteredParticipants.length === 1 ? 'nome' : 'nomes'}
@@ -834,15 +854,31 @@
               </div>
             )}
 
-            {/* Admin Access */}
-            <a
-              href="/admin"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center text-[10px] font-mono tracking-wider uppercase text-white/40 hover:text-white/70 transition-colors bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full border border-white/10 mt-4"
-            >
-              Painel Admin
-            </a>
+            {/* Theme Toggle + Admin Access */}
+            <div className="flex items-center gap-3 mt-4">
+              <button
+                onClick={() => setThemePreference(prev => prev === 'system' ? 'light' : prev === 'light' ? 'dark' : 'system')}
+                className="inline-flex items-center gap-1.5 text-[10px] font-mono tracking-wider uppercase text-white/40 hover:text-white/70 transition-colors bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full border border-white/10 cursor-pointer"
+                title={`Tema: ${themePreference === 'system' ? 'Sistema' : themePreference === 'light' ? 'Claro' : 'Escuro'}`}
+              >
+                {themePreference === 'system' ? (
+                  <Monitor size={12} />
+                ) : themePreference === 'light' ? (
+                  <Sun size={12} />
+                ) : (
+                  <Moon size={12} />
+                )}
+                {themePreference === 'system' ? 'Sistema' : themePreference === 'light' ? 'Claro' : 'Escuro'}
+              </button>
+              <a
+                href="/admin"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-[10px] font-mono tracking-wider uppercase text-white/40 hover:text-white/70 transition-colors bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full border border-white/10"
+              >
+                Painel Admin
+              </a>
+            </div>
 
             {/* Footer Bar Copyright */}
             <div className="w-full border-t border-white/5 pt-5 flex flex-col sm:flex-row justify-between items-center text-[11px] text-white/55 font-medium">
