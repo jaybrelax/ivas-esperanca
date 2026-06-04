@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node -e \"const fs=require('fs'),p=require('path');const src=p.join('.next','static');const dst=p.join('.next','standalone','.next','static');if(fs.existsSync(src)){if(!fs.existsSync(dst)){fs.mkdirSync(p.dirname(dst),{recursive:true})}fs.cpSync(src,dst,{recursive:true,dereference:true});console.log('Static files copied to standalone output')}\"",
     "start": "next start",
     "lint": "eslint .",
     "clean": "next clean"

@@ -3,32 +3,32 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
-import { 
-  Plus, 
-  Trash2, 
-  Edit, 
-  Calendar, 
-  Save, 
-  UserPlus, 
-  ChevronRight, 
-  Eye, 
-  Layout, 
+import {
+  Plus,
+  Trash2,
+  Edit,
+  Calendar,
+  Save,
+  UserPlus,
+  ChevronRight,
+  Eye,
+  Layout,
   Lock,
   Clock,
   AlertTriangle,
   Sun,
   Moon
 } from 'lucide-react';
-import { 
-  Evento, 
-  ConfigMarca, 
+import {
+  Evento,
+  ConfigMarca,
   Participant,
   DEFAULT_CONFIG,
-  fetchBrandingConfig, 
-  saveBrandingConfig, 
-  listAllEventos, 
-  saveEvento, 
-  deleteEvento, 
+  fetchBrandingConfig,
+  saveBrandingConfig,
+  listAllEventos,
+  saveEvento,
+  deleteEvento,
   getNextFridayDate,
   isSupabaseConfigured,
   getSupabaseClient,
@@ -39,16 +39,16 @@ import {
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'events' | 'branding' | 'database'>('events');
+  const [activeTab, setActiveTab] = useState<'events' | 'branding'>('events');
   const [isDbConnected, setIsDbConnected] = useState(false);
 
   // Loaded database states
   const [events, setEvents] = useState<Evento[]>([]);
   const [config, setConfig] = useState<ConfigMarca>(DEFAULT_CONFIG);
-  
+
   // Selected single event for guest list edit
   const [selectedEventId, setSelectedEventId] = useState<string>('');
-  
+
   // Adding new event states
   const [newEventDate, setNewEventDate] = useState('');
   const [newEventTime, setNewEventTime] = useState('20:00');
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
   const [deletingParticipant, setDeletingParticipant] = useState<{ id: string; nome: string } | null>(null);
 
   // Toast notifications
-  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
     try {
       const brandCnf = await fetchBrandingConfig();
       setConfig(brandCnf);
-      
+
       setEditTitulo(brandCnf.titulo);
       setEditSubTitulo(brandCnf.sub_titulo);
       setEditTitulo2(brandCnf.titulo_2);
@@ -129,11 +129,11 @@ export default function AdminDashboard() {
 
       const allEv = await listAllEventos();
       setEvents(allEv);
-      
+
       if (allEv.length > 0 && !selectedEventId) {
         setSelectedEventId(allEv[0].id);
       }
-      
+
       setIsDbConnected(isSupabaseConfigured());
     } catch (e) {
       console.error(e);
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
         copyright: editCopyright.trim() || DEFAULT_CONFIG.copyright,
         light_mode: editLightMode
       };
-      
+
       const success = await saveBrandingConfig(updatedConfig);
       if (success) {
         setConfig(updatedConfig);
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
           hora_inicio: newEventTime || '20:00',
           nomes: []
         };
-        
+
         const saved = await saveEvento(newEv);
         showToast(`Oração #${saved.numero} criada com sucesso!`, "success");
         setShowCreateEventForm(false);
@@ -283,7 +283,7 @@ export default function AdminDashboard() {
   const handleAdminAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEvent) return;
-    
+
     const trimmed = adminAddNome.trim();
     if (!trimmed) {
       showToast("Insira um nome válido.", "error");
@@ -305,7 +305,7 @@ export default function AdminDashboard() {
       isFixo: filterType === 'fixo'
     };
 
-    const updatedNomes = [...selectedEvent.nomes, newP].sort((a, b) => 
+    const updatedNomes = [...selectedEvent.nomes, newP].sort((a, b) =>
       a.nome.localeCompare(b.nome, 'pt-BR')
     );
 
@@ -317,7 +317,7 @@ export default function AdminDashboard() {
     try {
       const saved = await saveEvento(updatedEvent);
       setEvents(events.map(ev => ev.id === saved.id ? saved : ev));
-      
+
       // Salva no config globais se for fixo
       if (filterType === 'fixo') {
         const globalDup = config.nomes_fixo?.some(p => p.nome.toLowerCase() === trimmed.toLowerCase());
@@ -349,7 +349,7 @@ export default function AdminDashboard() {
   // Save row changes
   const saveEditedParticipant = async (pId: string) => {
     if (!selectedEvent) return;
-    
+
     const trimmed = adminEditNomeValue.trim();
     if (!trimmed) return;
 
@@ -374,7 +374,7 @@ export default function AdminDashboard() {
     try {
       const saved = await saveEvento(updatedEv);
       setEvents(events.map(ev => ev.id === saved.id ? saved : ev));
-      
+
       const pToEdit = selectedEvent.nomes.find(p => p.id === pId);
       if (pToEdit && pToEdit.isFixo) {
         // Encontrar e atualizar também na lista global
@@ -383,9 +383,9 @@ export default function AdminDashboard() {
         if (globalDup) {
           const updatedConfig = {
             ...config,
-            nomes_fixo: config.nomes_fixo?.map(fp => 
-              (fp.nome.toLowerCase() === oldNomeLower || fp.id === pId) 
-                ? { ...fp, nome: trimmed, sexo: adminEditSexoValue } 
+            nomes_fixo: config.nomes_fixo?.map(fp =>
+              (fp.nome.toLowerCase() === oldNomeLower || fp.id === pId)
+                ? { ...fp, nome: trimmed, sexo: adminEditSexoValue }
                 : fp
             )
           };
@@ -422,7 +422,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-700 flex items-center justify-center font-bold">
-        <div className="text-center font-mono text-xs">
+        <div className="text-center font-mono text-sm">
           <div className="h-10 w-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           Carregando Painel Administrativo...
         </div>
@@ -432,18 +432,18 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-transparent text-white flex flex-col justify-between" id="admin-main-root">
-      
+
       <div className="container mx-auto px-3 py-4 md:px-4 md:py-8 max-w-5xl flex-grow">
-        
+
         {/* Passcode Lock Shield if wanted to demo protection */}
         {!isUnlocked ? (
           <div className="max-w-md mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-6 mt-12 text-center text-white">
             <Lock size={36} className="text-indigo-400 mx-auto mb-3" />
             <h3 className="text-md font-bold text-white mb-1 uppercase tracking-wide">Acesso Restrito</h3>
-            <p className="text-xs text-indigo-300/80 mb-4">Insira o código de administrador para habilitar alterações no sistema.</p>
-            <input 
-              type="password" 
-              placeholder="Código de Acesso" 
+            <p className="text-sm text-indigo-300/80 mb-4">Insira o código de administrador para habilitar alterações no sistema.</p>
+            <input
+              type="password"
+              placeholder="Código de Acesso"
               className="w-full text-center px-4 py-3 bg-black/40 border border-white/10 rounded-xl mb-4 text-sm font-bold text-white focus:outline-none focus:border-indigo-500 transition-colors"
               value={passcode}
               onChange={(e) => {
@@ -454,15 +454,15 @@ export default function AdminDashboard() {
                 }
               }}
             />
-            <p className="text-[10px] text-white/40 italic">Dica de preview: Digite &quot;1234&quot;</p>
+            <p className="text-sm text-white/40 italic">Dica de preview: Digite &quot;1234&quot;</p>
           </div>
         ) : (
           <div>
             {/* Dashboard Tabs Selection - scrollável horizontalmente no mobile */}
             <div className="flex border-b border-white/10 mb-5 md:mb-8 overflow-x-auto no-scrollbar" id="admin-tabs">
               {[
-                { id: 'events', label: 'Listas & Orações', labelFull: 'Gerenciar Listas & Orações', icon: Calendar },
-                { id: 'branding', label: 'Marca', labelFull: 'Configuração da Marca', icon: Layout }
+                { id: 'events', label: 'Listas de Orações', labelFull: 'Gerenciar Listas & Orações', icon: Calendar },
+                { id: 'branding', label: 'Config', labelFull: 'Configurações', icon: Layout }
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isSelected = activeTab === tab.id;
@@ -470,11 +470,10 @@ export default function AdminDashboard() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-1.5 py-2.5 md:py-3 px-3 md:px-4 text-[10px] md:text-xs font-bold border-b-2 transition-all cursor-pointer uppercase tracking-widest whitespace-nowrap shrink-0 ${
-                      isSelected 
-                        ? 'border-indigo-500 text-white' 
-                        : 'border-transparent text-indigo-200/60 hover:text-white'
-                    }`}
+                    className={`flex items-center gap-1.5 py-2 md:py-2.5 px-2 md:px-3 text-xs font-bold border-b-2 transition-all cursor-pointer uppercase tracking-widest whitespace-nowrap shrink-0 ${isSelected
+                      ? 'border-indigo-500 text-white'
+                      : 'border-transparent text-indigo-200/60 hover:text-white'
+                      }`}
                   >
                     <Icon size={13} />
                     <span className="sm:hidden">{tab.label}</span>
@@ -490,19 +489,19 @@ export default function AdminDashboard() {
               {/* TAB 1: LISTAS E GESTÃO DE PARTICIPANTES */}
               {activeTab === 'events' && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8" id="tab-events-root">
-                  
+
                   {/* Left panel: List of events */}
                   <div className="lg:col-span-4 space-y-3 md:space-y-4 animate-fade-in-up lg:sticky lg:top-5 lg:self-start">
                     <div className="pb-3">
                       <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg bg-white/10 shadow-lg px-5 py-3 mb-3">
                         <div className="flex justify-between items-center">
-                          <h4 className="text-xs font-bold uppercase tracking-widest text-indigo-300">Orações</h4>
+                          <h4 className="text-sm font-bold uppercase tracking-widest text-indigo-300">Orações</h4>
                           <button
                             onClick={() => {
                               setShowCreateEventForm(!showCreateEventForm);
                               if (showCreateEventForm) setIsEditingEvent(false);
                             }}
-                            className={`bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold py-1 px-3 rounded-lg border border-indigo-500/50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md ${showCreateEventForm ? 'bg-indigo-700' : ''}`}
+                            className={`bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-1 px-3 rounded-lg border border-indigo-500/50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md ${showCreateEventForm ? 'bg-indigo-700' : ''}`}
                           >
                             {showCreateEventForm ? <Calendar size={12} /> : <Plus size={12} />}
                             <span>{showCreateEventForm ? "Fechar" : "Nova Oração"}</span>
@@ -513,30 +512,30 @@ export default function AdminDashboard() {
                       {/* Manual Custom event selection calendar form */}
                       <AnimatePresence>
                         {showCreateEventForm && (
-                          <motion.form 
+                          <motion.form
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             onSubmit={handleCreateCustomEvent}
-                            className="bg-black/40 p-4 rounded-xl border border-white/10 mb-4 space-y-4 overflow-hidden text-xs"
+                            className="bg-black/40 p-4 rounded-xl border border-white/10 mb-4 space-y-4 overflow-hidden text-sm"
                           >
                             <div className="flex justify-center text-white mb-2">
-                              <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-300">{isEditingEvent ? "Editar Oração" : "Escolha a Data da Oração"}</h3>
+                              <h3 className="text-base font-bold uppercase tracking-wider text-indigo-300">{isEditingEvent ? "Editar Oração" : "Escolha a Data da Oração"}</h3>
                             </div>
-                            
-                            <CustomDatePicker 
-                              value={newEventDate} 
-                              onChange={setNewEventDate} 
+
+                            <CustomDatePicker
+                              value={newEventDate}
+                              onChange={setNewEventDate}
                             />
-                            
+
                             <div className="pt-2">
                               <label className="block font-bold text-indigo-300 uppercase tracking-widest mb-1.5">HORA DE INÍCIO</label>
                               <div className="flex gap-2 relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-white/50">
                                   <Clock size={16} />
                                 </div>
-                                <input 
-                                  type="time" 
+                                <input
+                                  type="time"
                                   required
                                   value={newEventTime}
                                   onChange={(e) => setNewEventTime(e.target.value)}
@@ -545,7 +544,7 @@ export default function AdminDashboard() {
                                 <button
                                   type="button"
                                   onClick={handleCreateAutoFriday}
-                                  className="bg-white/5 hover:bg-white/10 text-white/90 font-semibold py-2 px-3 rounded-lg transition-colors border border-white/10 flex items-center justify-center gap-1.5 cursor-pointer text-[10px] shrink-0"
+                                  className="bg-white/5 hover:bg-white/10 text-white/90 font-semibold py-2 px-3 rounded-lg transition-colors border border-white/10 flex items-center justify-center gap-1.5 cursor-pointer text-sm shrink-0"
                                   title="Selecionar próxima sexta"
                                 >
                                   <Calendar size={12} />
@@ -553,7 +552,7 @@ export default function AdminDashboard() {
                                 </button>
                               </div>
                             </div>
-                            
+
                             <div className="flex gap-2 pt-2">
                               <button
                                 type="button"
@@ -561,12 +560,12 @@ export default function AdminDashboard() {
                                   setShowCreateEventForm(false);
                                   setIsEditingEvent(false);
                                 }}
-                                className="w-1/2 bg-white/10 hover:bg-white/20 text-white/80 font-semibold py-3 px-3 rounded-lg transition-colors border border-white/10 flex items-center justify-center gap-1.5 cursor-pointer text-[10px]"
+                                className="w-1/2 bg-white/10 hover:bg-white/20 text-white/80 font-semibold py-3 px-3 rounded-lg transition-colors border border-white/10 flex items-center justify-center gap-1.5 cursor-pointer text-sm"
                               >
                                 Cancelar
                               </button>
-                              
-                              <button 
+
+                              <button
                                 type="submit"
                                 className={`w-1/2 px-4 py-3 rounded-lg font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${!newEventDate ? 'bg-white/10 text-white/40 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}`}
                                 disabled={!newEventDate}
@@ -588,24 +587,23 @@ export default function AdminDashboard() {
                               return (
                                 <div
                                   key={ev.id}
-                                  className={`snap-start shrink-0 w-[calc(25%-4.5px)] lg:w-full min-w-[75px] lg:min-w-0 aspect-[4/3] lg:aspect-auto rounded-lg border transition-all cursor-pointer flex flex-col lg:flex-row items-center justify-center lg:justify-between text-center lg:text-left p-1 lg:px-4 lg:py-3 relative overflow-hidden mt-2 lg:mt-0 first:ml-5 lg:first:ml-0 ${
-                                    isSelected 
-                                      ? 'border-violet-400 bg-violet-500/25 ring-2 ring-violet-400/50 scale-[1.02] lg:scale-[1.01]' 
-                                      : 'border-white/10 bg-white/5 hover:bg-white/10'
-                                  }`}
+                                  className={`snap-start shrink-0 w-[calc(25%-4.5px)] lg:w-full min-w-[75px] lg:min-w-0 aspect-[4/3] lg:aspect-auto rounded-lg border transition-all cursor-pointer flex flex-col lg:flex-row items-center justify-center lg:justify-between text-center lg:text-left p-1 lg:px-4 lg:py-3 relative overflow-hidden mt-2 lg:mt-0 first:ml-5 lg:first:ml-0 ${isSelected
+                                    ? 'border-violet-400 bg-violet-500/25 ring-2 ring-violet-400/50 scale-[1.02] lg:scale-[1.01]'
+                                    : 'border-white/10 bg-white/5 hover:bg-white/10'
+                                    }`}
                                   onClick={() => setSelectedEventId(ev.id)}
                                 >
-                                  <span className="font-mono text-2xl lg:text-lg font-black text-white leading-none">
+                                  <span className="font-mono text-lg lg:text-sm font-black text-white leading-none">
                                     #{ev.numero}
                                   </span>
-                                  <span className="text-[9px] lg:text-xs font-bold text-white/70 leading-tight mt-0 lg:mt-0">
+                                  <span className="text-[10px] font-bold text-white/70 leading-tight mt-0 lg:mt-0">
                                     {new Date(ev.data + 'T00:00:00').toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}
                                   </span>
                                 </div>
                               );
                             })
                           ) : (
-                            <div className="w-full text-center py-8 text-xs text-indigo-200/50">
+                            <div className="w-full text-center py-8 text-sm text-indigo-200/50">
                               Nenhuma oração registrada ainda.
                             </div>
                           )}
@@ -619,25 +617,25 @@ export default function AdminDashboard() {
                   <div className="lg:col-span-8 space-y-4">
                     {selectedEvent ? (
                       <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl">
-                        
+
                         {/* Event title summary info */}
                         <div className="flex justify-between items-center flex-wrap gap-2 border-b border-white/10 pb-3 mb-4 md:pb-4 md:mb-6">
                           <div>
-                            <span className="text-sm md:text-[28px] font-bold text-violet-400 font-mono">
+                            <span className="text-base md:text-xl font-bold text-violet-400 font-mono">
                               ORAÇÃO #{selectedEvent.numero}
                             </span>
-                            <h3 className="text-base md:text-lg font-bold text-white mt-1 capitalize">
+                            <h3 className="text-xs md:text-sm font-bold text-white mt-1 capitalize">
                               {formatDateBr(selectedEvent.data).replace(/ de \d{4}/, '')}
                             </h3>
-                            <p className="text-[10px] md:text-xs text-indigo-200/60 flex items-center gap-1.5 mt-1 font-medium">
-                              <Clock size={11} className="text-indigo-300" />
-                              Início: {selectedEvent.hora_inicio || '20:00'}
+                            <p className="text-sm text-indigo-200/60 flex items-center gap-1.5 mt-1 font-medium">
+                              <Clock size={13} className="text-indigo-300" />
+                              Início: {(selectedEvent.hora_inicio || '20:00').slice(0, 5)}
                             </p>
                           </div>
-                          
+
                           <div className="bg-indigo-500/10 px-3 md:px-4 py-2 rounded-xl text-center border border-indigo-500/20 min-w-[64px]">
-                            <span className="block text-xl font-black text-white font-mono leading-none">{selectedEvent.nomes.length + (config.nomes_fixo?.filter(fixo => !selectedEvent.nomes.some(n => n.id === fixo.id)).length || 0)}</span>
-                            <span className="text-[8px] md:text-[9px] uppercase font-bold text-indigo-300/80 tracking-wide mt-1 block">Cadastros</span>
+                            <span className="block text-base font-black text-white font-mono leading-none">{selectedEvent.nomes.length + (config.nomes_fixo?.filter(fixo => !selectedEvent.nomes.some(n => n.id === fixo.id)).length || 0)}</span>
+                            <span className="text-[10px] md:text-xs uppercase font-bold text-indigo-300/80 tracking-wide mt-1 block">Cadastros</span>
                           </div>
                         </div>
 
@@ -646,7 +644,7 @@ export default function AdminDashboard() {
                           <button
                             type="button"
                             onClick={() => setShowAddNomeForm(!showAddNomeForm)}
-                            className="flex-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-[11px] font-bold py-2 px-4 rounded-xl border border-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            className="flex-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-sm font-bold py-2 px-4 rounded-xl border border-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <Plus size={14} />
                             <span>{showAddNomeForm ? "Fechar" : "Adicionar Nome"}</span>
@@ -654,7 +652,7 @@ export default function AdminDashboard() {
                           <button
                             type="button"
                             onClick={handleEditEvent}
-                            className="bg-white/10 hover:bg-white/20 text-white/80 text-[11px] font-bold px-4 rounded-xl transition-all flex items-center justify-center gap-2 border border-white/10 shrink-0 cursor-pointer"
+                            className="bg-white/10 hover:bg-white/20 text-white/80 text-sm font-bold px-4 rounded-xl transition-all flex items-center justify-center gap-2 border border-white/10 shrink-0 cursor-pointer"
                             title="Editar data e horário desta oração"
                           >
                             <Edit size={14} />
@@ -663,67 +661,67 @@ export default function AdminDashboard() {
                         </div>
 
                         {showAddNomeForm && (
-                        <form onSubmit={handleAdminAddParticipant} className="mb-5 flex flex-col gap-2">
-                          <label className="block text-[10px] md:text-[11px] font-bold text-indigo-300 uppercase tracking-widest pl-1">Inserir nome na lista</label>
-                          <input 
-                            type="text"
-                            value={adminAddNome}
-                            onChange={(e) => setAdminAddNome(e.target.value)}
-                            placeholder="Nome e Sobrenome"
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-semibold text-white focus:outline-none focus:border-indigo-500 placeholder:text-white/30 h-12"
-                          />
+                          <form onSubmit={handleAdminAddParticipant} className="mb-5 flex flex-col gap-2">
+                            <label className="block text-sm font-bold text-indigo-300 uppercase tracking-widest pl-1">Inserir nome na lista</label>
+                            <input
+                              type="text"
+                              value={adminAddNome}
+                              onChange={(e) => setAdminAddNome(e.target.value)}
+                              placeholder="Nome e Sobrenome"
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-semibold text-white focus:outline-none focus:border-indigo-500 placeholder:text-white/30 h-12"
+                            />
 
-                          <div className="flex gap-2 w-full h-12">
-                            <div className="flex bg-white/5 p-1 border border-white/10 rounded-xl flex-grow">
+                            <div className="flex gap-2 w-full h-12">
+                              <div className="flex bg-white/5 p-1 border border-white/10 rounded-xl flex-grow">
+                                <button
+                                  type="button"
+                                  onClick={() => setAdminAddSexo('M')}
+                                  className={`flex-1 flex items-center justify-center gap-1 text-sm font-bold rounded-lg duration-100 cursor-pointer ${adminAddSexo === 'M' ? 'bg-indigo-600 text-white shadow' : 'text-white/40 hover:text-white'}`}
+                                >
+                                  ♂️ <span className="ml-0.5">Masc.</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setAdminAddSexo('F')}
+                                  className={`flex-1 flex items-center justify-center gap-1 text-sm font-bold rounded-lg duration-100 cursor-pointer ${adminAddSexo === 'F' ? 'bg-pink-500/80 text-white shadow' : 'text-white/40 hover:text-white'}`}
+                                >
+                                  ♀️ <span className="ml-0.5">Fem.</span>
+                                </button>
+                              </div>
                               <button
-                                type="button"
-                                onClick={() => setAdminAddSexo('M')}
-                                className={`flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold rounded-lg duration-100 cursor-pointer ${adminAddSexo === 'M' ? 'bg-indigo-600 text-white shadow' : 'text-white/40 hover:text-white'}`}
+                                type="submit"
+                                className="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-sm font-bold px-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 uppercase tracking-wider cursor-pointer border border-indigo-500/20 shrink-0"
                               >
-                                ♂️ <span className="ml-0.5">Masc.</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setAdminAddSexo('F')}
-                                className={`flex-1 flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-bold rounded-lg duration-100 cursor-pointer ${adminAddSexo === 'F' ? 'bg-pink-500/80 text-white shadow' : 'text-white/40 hover:text-white'}`}
-                              >
-                                ♀️ <span className="ml-0.5">Fem.</span>
+                                <Plus size={16} />
+                                <span>Adicionar</span>
                               </button>
                             </div>
-                            <button
-                              type="submit"
-                              className="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-[11px] font-bold px-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 uppercase tracking-wider cursor-pointer border border-indigo-500/20 shrink-0"
-                            >
-                              <Plus size={16} />
-                              <span>Adicionar</span>
-                            </button>
-                          </div>
-                        </form>
+                          </form>
                         )}
 
                         {/* List items representation */}
                         <div className="flex flex-col gap-1.5 mb-3">
-                          <h4 className="text-[10px] md:text-xs font-bold text-indigo-300 uppercase tracking-widest pl-1">Lista de Intercessado</h4>
-                          
+                          <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-widest pl-1 mt-5">Lista de Intercessados</h4>
+
                           {/* Filters */}
                           <div className="flex bg-black/40 p-1 border border-white/10 rounded-lg overflow-x-auto w-full no-scrollbar">
                             {(['all', 'M', 'F', 'fixo'] as const).map(type => (
                               <button
                                 key={type}
                                 onClick={() => setFilterType(type)}
-                                className={`flex-1 py-1.5 px-2 text-[9px] sm:text-[10px] font-bold rounded uppercase tracking-wider duration-100 cursor-pointer whitespace-nowrap text-center min-w-[48px] ${filterType === type ? 'bg-indigo-500 text-white shadow' : 'text-white/40 hover:text-white'}`}
+                                className={`flex-1 py-1 px-1.5 text-[10px] font-bold rounded uppercase tracking-wider duration-100 cursor-pointer whitespace-nowrap text-center min-w-[40px] ${filterType === type ? 'bg-indigo-500 text-white shadow' : 'text-white/40 hover:text-white'}`}
                               >
                                 {type === 'all' ? 'Todos' : type === 'fixo' ? '📌 Fixos' : type === 'M' ? '♂️ Masc.' : '♀️ Fem.'}
                               </button>
                             ))}
                           </div>
                         </div>
-                        
+
                         <div className="border border-white/10 rounded-2xl divide-y divide-white/5 overflow-hidden shadow-inner bg-black/15" id="participantes-editor-table">
                           {(() => {
                             const allNomes = [
                               ...selectedEvent.nomes,
-                              ...(config.nomes_fixo?.filter(fixo => 
+                              ...(config.nomes_fixo?.filter(fixo =>
                                 !selectedEvent.nomes.some(n => n.id === fixo.id)
                               ) || [])
                             ];
@@ -732,13 +730,13 @@ export default function AdminDashboard() {
                               if (filterType === 'M') return p.sexo === 'M';
                               if (filterType === 'F') return p.sexo === 'F';
                               return true;
-                            });
+                            }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 
                             return filteredNomes.length > 0 ? (
                               filteredNomes.map((p, idx) => {
                                 const isEditing = adminEditingParticipantId === p.id;
                                 return (
-                                  <div key={p.id} className="p-3 flex justify-between items-center text-xs hover:bg-white/5 transition-colors">
+                                  <div key={p.id} className="p-2 flex justify-between items-center text-xs hover:bg-white/5 transition-colors">
                                     {isEditing ? (
                                       <div className="flex flex-wrap items-center gap-2 flex-grow">
                                         <input
@@ -750,36 +748,36 @@ export default function AdminDashboard() {
                                         <select
                                           value={adminEditSexoValue}
                                           onChange={(e) => setAdminEditSexoValue(e.target.value as 'M' | 'F')}
-                                          className="p-1 px-2.5 bg-black border border-white/10 rounded text-xs font-medium text-white focus:outline-none h-full"
+                                          className="p-1 px-2.5 bg-black border border-white/10 rounded text-sm font-medium text-white focus:outline-none h-full"
                                         >
                                           <option value="M">♂️ Masculino</option>
                                           <option value="F">♀️ Feminino</option>
                                         </select>
-                                        <button 
+                                        <button
                                           onClick={() => saveEditedParticipant(p.id)}
-                                          className="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold py-1 px-2.5 rounded cursor-pointer"
+                                          className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold py-1 px-2.5 rounded cursor-pointer"
                                         >
                                           Salvar
                                         </button>
-                                        <button 
+                                        <button
                                           onClick={() => setAdminEditingParticipantId(null)}
-                                          className="bg-white/10 hover:bg-white/20 text-white/80 text-[11px] font-medium py-1 px-2 rounded border border-white/10 cursor-pointer"
+                                          className="bg-white/10 hover:bg-white/20 text-white/80 text-sm font-medium py-1 px-2 rounded border border-white/10 cursor-pointer"
                                         >
                                           Cancelar
                                         </button>
                                       </div>
                                     ) : (
                                       <>
-                                        <div className="flex items-center gap-2.5 min-w-0 pr-4">
-                                          <span className="font-mono text-[10px] text-indigo-300 font-bold w-4 shrink-0">
+                                        <div className="flex items-center gap-2 min-w-0 pr-4">
+                                          <span className="font-mono text-xs text-indigo-300 font-bold w-4 shrink-0">
                                             {idx + 1}
                                           </span>
-                                          <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${p.sexo === 'F' ? 'bg-pink-400' : 'bg-blue-400'}`} title={p.sexo === 'F' ? 'Feminino' : 'Masculino'}></span>
-                                          <span className="font-semibold text-white uppercase">
+                                          <span className="shrink-0 text-xs" title={p.sexo === 'F' ? 'Feminino' : 'Masculino'}>{p.sexo === 'F' ? '♀️' : '♂️'}</span>
+                                          <span className="font-semibold text-white uppercase text-xs">
                                             {p.nome}
                                           </span>
                                           {p.isFixo && (
-                                            <span className="text-[8px] uppercase tracking-wider bg-indigo-500/30 text-indigo-200 px-1.5 py-0.5 rounded font-bold border border-indigo-500/30 shrink-0 ml-1">
+                                            <span className="text-[8px] uppercase tracking-wider bg-indigo-500/30 text-indigo-200 px-1 py-0.5 rounded font-bold border border-indigo-500/30 shrink-0 ml-1">
                                               Fixo
                                             </span>
                                           )}
@@ -808,35 +806,35 @@ export default function AdminDashboard() {
                                 );
                               })
                             ) : (
-                                  <div className="text-center py-12 text-xs text-indigo-200/50">
-                                    Nenhum participante encontrado com os filtros atuais.
-                                  </div>
-                                );
-                              })()}
-                            </div>
+                              <div className="text-center py-12 text-sm text-indigo-200/50">
+                                Nenhum participante encontrado com os filtros atuais.
+                              </div>
+                            );
+                          })()}
+                        </div>
 
-                            <div className="flex justify-between items-center mt-20">
-                              <button
-                                onClick={() => setDeletingEvent({ id: selectedEvent.id, numero: selectedEvent.numero })}
-                                className="text-[10px] font-bold text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5 px-1 cursor-pointer"
-                              >
-                                <Trash2 size={12} />
-                                Excluir esta lista
-                              </button>
+                        <div className="flex justify-between items-center mt-20">
+                          <button
+                            onClick={() => setDeletingEvent({ id: selectedEvent.id, numero: selectedEvent.numero })}
+                            className="text-sm font-bold text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5 px-1 cursor-pointer"
+                          >
+                            <Trash2 size={12} />
+                            Excluir esta lista
+                          </button>
 
-                              <a
-                                href="/"
-                                target="_blank"
-                                className="text-xs font-bold text-indigo-400/60 hover:text-indigo-400 border border-indigo-400/20 hover:border-indigo-400/40 rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 cursor-pointer"
-                              >
-                                <Eye size={14} />
-                                Visualizar página
-                              </a>
-                            </div>
+                          <a
+                            href={`/?evento=${selectedEvent.numero}`}
+                            target="_blank"
+                            className="text-sm font-bold text-indigo-400/60 hover:text-indigo-400 border border-indigo-400/20 hover:border-indigo-400/40 rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Eye size={14} />
+                            Visualizar página
+                          </a>
+                        </div>
 
-                          </div>
-                        ) : (
-                      <div className="bg-white/5 border border-dashed border-white/10 rounded-3xl p-8 text-center text-indigo-205/60 text-xs">
+                      </div>
+                    ) : (
+                      <div className="bg-white/5 border border-dashed border-white/10 rounded-3xl p-8 text-center text-indigo-205/60 text-sm">
                         Clique em &quot;Próxima Sexta&quot; para selecionar a data ou configure uma data personalizada, depois clique em &quot;Confirmar&quot; para criar.
                       </div>
                     )}
@@ -849,132 +847,18 @@ export default function AdminDashboard() {
               {activeTab === 'branding' && (
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl max-w-2xl mx-auto" id="tab-branding-root">
                   <div className="border-b border-white/10 pb-3 mb-4 md:mb-6">
-                    <h3 className="text-sm md:text-base font-extrabold text-white uppercase tracking-wider pl-3 border-l-4 border-indigo-500">Customização Visual da Marca</h3>
-                    <p className="text-[10px] md:text-xs text-indigo-200/60 mt-1 font-medium">Todas as modificações são refletidas instantaneamente na página de inscrição pública dos participantes.</p>
+                    <h3 className="text-sm font-extrabold text-white uppercase tracking-wider pl-3 border-l-4 border-indigo-500">Customização Visual da Marca</h3>
+                    <p className="text-sm text-indigo-200/60 mt-1 font-medium">Todas as modificações são refletidas instantaneamente na página de inscrição pública dos participantes.</p>
                   </div>
 
-                  <form onSubmit={handleSaveBranding} className="space-y-4 text-xs font-semibold">
-                    
-                    {/* Event URL Logo input & Upload */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
-                      <label htmlFor="logo-url-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-[11px]">Logo do Seu Evento</label>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                        {/* Preview and Upload box */}
-                        <div 
-                          className="md:col-span-1 flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl p-3 bg-black/20 hover:border-indigo-500/50 transition-colors relative cursor-pointer group h-32"
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const file = e.dataTransfer.files?.[0];
-                            if (file) handleImageUpload(file, setEditLogoUrl);
-                          }}
-                        >
-                          <input
-                            type="file"
-                            accept="image/*"
-                            id="logo-upload-input"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleImageUpload(file, setEditLogoUrl);
-                            }}
-                          />
-                          <label htmlFor="logo-upload-input" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-center p-2">
-                            {editLogoUrl ? (
-                              <div className="relative w-20 h-20 group">
-                                <img src={editLogoUrl} alt="Logo Preview" className="w-20 h-20 object-cover rounded-full border border-indigo-500/50 bg-slate-950" />
-                                <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                  <Edit size={16} className="text-white" />
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center justify-center text-white/55">
-                                <Plus size={20} className="mb-1 text-indigo-400 group-hover:scale-110 transition-transform" />
-                                <span className="text-[10px] font-bold">Upload Logo</span>
-                                <span className="text-[8px] text-white/45">Arraste ou clique</span>
-                              </div>
-                            )}
-                          </label>
-                        </div>
-                        
-                        {/* URL input */}
-                        <div className="md:col-span-2 space-y-2">
-                          <label htmlFor="logo-url-field" className="block text-[10px] text-indigo-200/60 uppercase">Ou cole uma URL externa direta</label>
-                          <input
-                            id="logo-url-field"
-                            type="text"
-                            value={editLogoUrl}
-                            onChange={(e) => setEditLogoUrl(e.target.value)}
-                            placeholder="Ex: https://meusite.com/logo.png"
-                            className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium text-xs whitespace-nowrap overflow-hidden text-ellipsis"
-                          />
-                          <span className="block text-[10px] text-white/40 font-medium leading-relaxed">Se vazio, o cabeçalho usará um ícone elegante por padrão. Você também pode arrastar e soltar um arquivo de imagem no quadrado pontilhado!</span>
-                        </div>
-                      </div>
-                    </div>
+                  <form onSubmit={handleSaveBranding} className="space-y-4 text-sm font-semibold">
 
-                    {/* Event URL Banner Background input & Upload */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
-                      <label htmlFor="banner-url-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-[11px]">Banner de Fundo do Evento</label>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                        {/* Preview and Upload box */}
-                        <div 
-                          className="md:col-span-1 flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl p-3 bg-black/20 hover:border-indigo-500/50 transition-colors relative cursor-pointer group h-32"
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const file = e.dataTransfer.files?.[0];
-                            if (file) handleImageUpload(file, setEditBannerUrl);
-                          }}
-                        >
-                          <input
-                            type="file"
-                            accept="image/*"
-                            id="banner-upload-input"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleImageUpload(file, setEditBannerUrl);
-                            }}
-                          />
-                          <label htmlFor="banner-upload-input" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-center p-2">
-                            {editBannerUrl ? (
-                              <div className="relative w-full h-full group p-1">
-                                <img src={editBannerUrl} alt="Banner Preview" className="w-full h-full object-cover rounded-lg border border-indigo-500/30 bg-slate-950" />
-                                <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                  <Edit size={16} className="text-white" />
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center justify-center text-white/55">
-                                <Plus size={20} className="mb-1 text-indigo-400 group-hover:scale-110 transition-transform" />
-                                <span className="text-[10px] font-bold">Upload Banner</span>
-                                <span className="text-[8px] text-white/45">Arraste ou clique</span>
-                              </div>
-                            )}
-                          </label>
-                        </div>
-                        
-                        {/* URL input */}
-                        <div className="md:col-span-2 space-y-2">
-                          <label htmlFor="banner-url-field" className="block text-[10px] text-indigo-200/60 uppercase">Ou cole uma URL externa direta</label>
-                          <input
-                            id="banner-url-field"
-                            type="text"
-                            value={editBannerUrl}
-                            onChange={(e) => setEditBannerUrl(e.target.value)}
-                            placeholder="Ex: https://meusite.com/banner.jpg"
-                            className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium text-xs whitespace-nowrap overflow-hidden text-ellipsis"
-                          />
-                          <span className="block text-[10px] text-white/40 font-medium leading-relaxed">Insira o link para a imagem de fundo que ficará atrás da logo na página pública. Aceita arquivos locais ou links remotos.</span>
-                        </div>
-                      </div>
-                    </div>
+
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Title */}
                       <div>
-                        <label htmlFor="title-field" className="block text-indigo-300 mb-1.5 uppercase tracking-widest">TÍTULO PRINCIPAL</label>
+                        <label htmlFor="title-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">TÍTULO PRINCIPAL</label>
                         <input
                           id="title-field"
                           type="text"
@@ -988,7 +872,7 @@ export default function AdminDashboard() {
 
                       {/* Header Subtitle */}
                       <div>
-                        <label htmlFor="subtitle-field" className="block text-indigo-300 mb-1.5 uppercase tracking-widest">SUBTÍTULO</label>
+                        <label htmlFor="subtitle-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">SUBTÍTULO</label>
                         <input
                           id="subtitle-field"
                           type="text"
@@ -1003,21 +887,21 @@ export default function AdminDashboard() {
 
                     {/* Title 2 footer */}
                     <div>
-                      <label htmlFor="title2-field" className="block text-indigo-300 mb-1.5 uppercase tracking-widest">TÍTULO DE DESTAQUE DO RODAPÉ (TÍTULO 2)</label>
-                      <input
+                      <label htmlFor="title2-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">TEXTO DE DESTAQUE DO RODAPÉ</label>
+                      <textarea
                         id="title2-field"
-                        type="text"
                         required
                         value={editTitulo2}
                         onChange={(e) => setEditTitulo2(e.target.value)}
-                        placeholder="Ex: Não perca o melhor evento de sexta!"
-                        className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium"
+                        placeholder="Ex: Não perca a melhor página de sexta!"
+                        rows={3}
+                        className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium resize-none"
                       />
                     </div>
 
                     {/* Copyright footerbar text */}
                     <div>
-                      <label htmlFor="copyright-field" className="block text-indigo-300 mb-1.5 uppercase tracking-widest">TEXTO DE COPYRIGHT (RODAPÉ)</label>
+                      <label htmlFor="copyright-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">TEXTO DE COPYRIGHT (RODAPÉ)</label>
                       <input
                         id="copyright-field"
                         type="text"
@@ -1029,25 +913,94 @@ export default function AdminDashboard() {
                       />
                     </div>
 
-                    <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-300">Tema da Página:</span>
-                        <button
-                          type="button"
-                          onClick={() => setEditLightMode(!editLightMode)}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border ${
-                            editLightMode
-                              ? 'bg-amber-400/20 border-amber-400/30 text-amber-300 hover:bg-amber-400/30'
-                              : 'bg-indigo-600/20 border-indigo-500/30 text-indigo-300 hover:bg-indigo-600/30'
-                          }`}
-                        >
-                          {editLightMode ? <Sun size={14} /> : <Moon size={14} />}
-                          {editLightMode ? 'Light Mode' : 'Dark Mode'}
-                        </button>
+                    <div className="border-t border-white/10 pt-4"></div>
+
+                    {/* Logo Upload */}
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                      <label className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">Logo da Sua Página</label>
+                      <div
+                        className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl p-3 bg-black/20 hover:border-indigo-500/50 transition-colors relative cursor-pointer group h-32"
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) handleImageUpload(file, setEditLogoUrl);
+                        }}
+                      >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          id="logo-upload-input"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(file, setEditLogoUrl);
+                          }}
+                        />
+                        <label htmlFor="logo-upload-input" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-center p-2">
+                          {editLogoUrl ? (
+                            <div className="relative w-20 h-20 group">
+                              <img src={editLogoUrl} alt="Logo Preview" className="w-20 h-20 object-cover rounded-full border border-indigo-500/50 bg-slate-950" />
+                              <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <Edit size={16} className="text-white" />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center text-white/55">
+                              <Plus size={20} className="mb-1 text-indigo-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-sm font-bold">Upload Logo</span>
+                              <span className="text-sm text-white/45">Arraste ou clique</span>
+                            </div>
+                          )}
+                        </label>
                       </div>
+                    </div>
+
+                    {/* Banner Upload */}
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                      <label className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">Banner de Fundo da Página</label>
+                      <div
+                        className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl p-3 bg-black/20 hover:border-indigo-500/50 transition-colors relative cursor-pointer group h-32"
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) handleImageUpload(file, setEditBannerUrl);
+                        }}
+                      >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          id="banner-upload-input"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(file, setEditBannerUrl);
+                          }}
+                        />
+                        <label htmlFor="banner-upload-input" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-center p-2">
+                          {editBannerUrl ? (
+                            <div className="relative w-full h-full group p-1">
+                              <img src={editBannerUrl} alt="Banner Preview" className="w-full h-full object-cover rounded-lg border border-indigo-500/30 bg-slate-950" />
+                              <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <Edit size={16} className="text-white" />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center text-white/55">
+                              <Plus size={20} className="mb-1 text-indigo-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-sm font-bold">Upload Banner</span>
+                              <span className="text-sm text-white/45">Arraste ou clique</span>
+                            </div>
+                          )}
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-end gap-4">
                       <button
                         type="submit"
-                        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold py-3 px-6 rounded-xl shadow-lg border border-indigo-500/20 hover:shadow-indigo-500/10 transition-all flex items-center justify-center gap-1.5 text-xs tracking-widest uppercase cursor-pointer"
+                        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold py-3 px-6 rounded-xl shadow-lg border border-indigo-500/20 hover:shadow-indigo-500/10 transition-all flex items-center justify-center gap-1.5 text-sm tracking-widest uppercase cursor-pointer"
                       >
                         <Save size={14} />
                         <span>Salvar Todos os Ajustes</span>
@@ -1065,7 +1018,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Admin footer bar */}
-      <footer className="bg-white/5 backdrop-blur-md border-t border-white/10 py-4 text-center text-[10px] md:text-[11px] text-indigo-200/50 font-medium">
+      <footer className="bg-white/5 backdrop-blur-md border-t border-white/10 py-4 text-center text-sm text-indigo-200/50 font-medium">
         <p>Painel de Controle Administrativo Integrado • Gestor de Listas de Convidados</p>
       </footer>
 
@@ -1076,11 +1029,10 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className={`fixed bottom-4 right-4 z-50 text-xs font-bold px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-1.5 backdrop-blur-xl ${
-              toast.type === 'success' 
-                ? 'bg-[#0b1220]/95 text-white border-indigo-500/30' 
-                : 'bg-red-950/90 text-white/90 border-red-500/30'
-            }`}
+            className={`fixed bottom-4 right-4 z-50 text-sm font-bold px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-1.5 backdrop-blur-xl ${toast.type === 'success'
+              ? 'bg-[#0b1220]/95 text-white border-indigo-500/30'
+              : 'bg-red-950/90 text-white/90 border-red-500/30'
+              }`}
           >
             <span className={`h-1.5 w-1.5 rounded-full ${toast.type === 'success' ? 'bg-indigo-400 animate-pulse' : 'bg-red-500'}`}></span>
             {toast.message}
@@ -1106,15 +1058,15 @@ export default function AdminDashboard() {
               <div className="mx-auto w-11 h-11 md:w-12 md:h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mb-4">
                 <AlertTriangle size={22} />
               </div>
-              <h3 className="text-sm md:text-base font-extrabold text-white mb-2 uppercase tracking-wider">Remover Oração #{deletingEvent.numero}?</h3>
-              <p className="text-[10px] md:text-xs text-indigo-200/70 mb-5 md:mb-6 leading-relaxed">
+              <h3 className="text-base font-extrabold text-white mb-2 uppercase tracking-wider">Remover Oração #{deletingEvent.numero}?</h3>
+              <p className="text-sm text-indigo-200/70 mb-5 md:mb-6 leading-relaxed">
                 ATENÇÃO: Deseja realmente remover a Oração #{deletingEvent.numero}? Isso irá excluir permanentemente todos os nomes registrados na lista. Esta ação é irreversível.
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                 <button
                   type="button"
                   onClick={() => setDeletingEvent(null)}
-                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-xl text-xs font-semibold hover:bg-white/10 duration-100 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-xl text-sm font-semibold hover:bg-white/10 duration-100 cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -1126,7 +1078,7 @@ export default function AdminDashboard() {
                     setDeletingEvent(null);
                     await confirmDeleteEvent(idToDel, numToDel);
                   }}
-                  className="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold duration-100 shadow-md cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-bold duration-100 shadow-md cursor-pointer"
                 >
                   Excluir Permanentemente
                 </button>
@@ -1154,15 +1106,15 @@ export default function AdminDashboard() {
               <div className="mx-auto w-11 h-11 md:w-12 md:h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                 <AlertTriangle size={22} />
               </div>
-              <h3 className="text-sm md:text-base font-extrabold text-white mb-2 uppercase tracking-wider">Banir / Remover?</h3>
-              <p className="text-[10px] md:text-xs text-indigo-200/70 mb-5 md:mb-6 leading-relaxed">
+              <h3 className="text-base font-extrabold text-white mb-2 uppercase tracking-wider">Banir / Remover?</h3>
+              <p className="text-sm text-indigo-200/70 mb-5 md:mb-6 leading-relaxed">
                 Deseja mesmo remover &quot;<strong className="text-white font-bold">{deletingParticipant.nome}</strong>&quot; da lista de presença?
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                 <button
                   type="button"
                   onClick={() => setDeletingParticipant(null)}
-                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-xl text-xs font-semibold hover:bg-white/10 duration-100 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-xl text-sm font-semibold hover:bg-white/10 duration-100 cursor-pointer"
                 >
                   Manter na Lista
                 </button>
@@ -1173,7 +1125,7 @@ export default function AdminDashboard() {
                     setDeletingParticipant(null);
                     await confirmDeleteParticipant(idToDel);
                   }}
-                  className="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold duration-100 shadow-md cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-bold duration-100 shadow-md cursor-pointer"
                 >
                   Confirmar Remoção
                 </button>

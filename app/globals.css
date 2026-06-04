@@ -174,13 +174,22 @@ body {
   animation: spin-slow 6s linear infinite;
 }
 
-/* ─── Glow sutil para números do countdown ──────────────────── */
+/* ─── Glow vibrante para números do countdown (dark mode) ──── */
 @keyframes count-glow {
-  0%, 100% { text-shadow: 0 0 8px rgba(99, 102, 241, 0.3); }
-  50%      { text-shadow: 0 0 16px rgba(99, 102, 241, 0.6); }
+  0%, 100% { text-shadow: 0 0 10px rgba(129, 140, 248, 0.4), 0 0 30px rgba(99, 102, 241, 0.15); }
+  50%      { text-shadow: 0 0 25px rgba(129, 140, 248, 0.9), 0 0 60px rgba(99, 102, 241, 0.3); }
 }
 .animate-count-glow {
   animation: count-glow 2s ease-in-out infinite;
+}
+
+/* ─── Glow pulsante no card inteiro (dark mode) ────────────── */
+@keyframes card-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.15), 0 0 40px rgba(99, 102, 241, 0.05); }
+  50%      { box-shadow: 0 0 30px rgba(99, 102, 241, 0.3), 0 0 80px rgba(99, 102, 241, 0.1); }
+}
+.animate-card-glow {
+  animation: card-glow 3s ease-in-out infinite;
 }
 
 /* ─── Pulse suave para ícones de status ──────────────────────── */
@@ -407,16 +416,20 @@ button, label {
 }
 
 /* ───── COUNTDOWN ───── */
-#public-main-root.light-mode [id="countdown-card"] [class*="bg-white/10"] {
+#public-main-root.light-mode [id="countdown-grid"] {
   background: #ffffff !important;
   border-color: #e2e0e8 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }
-#public-main-root.light-mode [id*="countdown"] .tabular-nums {
+#public-main-root.light-mode [id="countdown-grid"] .tabular-nums {
   color: #1a1a2e !important;
 }
-#public-main-root.light-mode [id*="countdown"] [class*="opacity-60"] {
-  opacity: 1 !important;
+#public-main-root.light-mode [id="countdown-grid"] [class*="text-indigo-300"],
+#public-main-root.light-mode [id="countdown-grid"] [class*="text-indigo-400"] {
+  color: #6c5ce7 !important;
+}
+#public-main-root.light-mode [id="countdown-grid"] [class*="text-indigo-300/60"],
+#public-main-root.light-mode [id="countdown-grid"] [class*="text-white/40"] {
   color: #5a5a7a !important;
 }
 

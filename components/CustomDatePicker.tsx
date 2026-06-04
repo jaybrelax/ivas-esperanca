@@ -35,9 +35,10 @@ export function CustomDatePicker({ value, onChange }: CustomDatePickerProps) {
 
   const handleDaySelect = (day: number) => {
     const selected = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    const offset = selected.getTimezoneOffset()
-    selected.setMinutes(selected.getMinutes() - offset)
-    const formatted = selected.toISOString().split('T')[0];
+    const year = selected.getFullYear();
+    const month = String(selected.getMonth() + 1).padStart(2, '0');
+    const d = String(selected.getDate()).padStart(2, '0');
+    const formatted = `${year}-${month}-${d}`;
     onChange(formatted);
   };
 
