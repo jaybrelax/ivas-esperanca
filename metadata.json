@@ -1,0 +1,6 @@
+{
+  "name": "Gestor de Listas de Eventos",
+  "description": "Aplicativo de gerenciamento de lista de convidados para eventos de sexta-feira com painel de administração e integração com Supabase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

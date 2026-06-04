@@ -1,0 +1,502 @@
+@import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: radial-gradient(at 0% 0%, #0f172a 0, transparent 50%), radial-gradient(at 50% 0%, #1e293b 0, transparent 50%), radial-gradient(at 100% 0%, #312e81 0, transparent 50%), #020617;
+  color: #ffffff;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar para navegadores Webkit */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Utilitário para esconder barras de rolagem mantendo funcionalidade */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE e Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Animated gradient border for name input */
+@keyframes glow-rotate {
+  0%   { --angle: 0deg; }
+  100% { --angle: 360deg; }
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.input-glow-wrapper {
+  position: relative;
+  border-radius: 12px;
+}
+
+.input-glow-wrapper::before,
+.input-glow-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 13px;
+  background: conic-gradient(from var(--angle), #7c3aed, #4f46e5, #06b6d4, #ec4899, #7c3aed);
+  animation: glow-rotate 4s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.input-glow-wrapper::after {
+  filter: blur(10px);
+  opacity: 0;
+}
+
+.input-glow-wrapper.is-active::before {
+  opacity: 1;
+}
+
+.input-glow-wrapper.is-active::after {
+  opacity: 0.4;
+}
+
+.input-glow-wrapper .input-inner {
+  position: relative;
+  z-index: 1;
+  border-radius: 11px;
+  overflow: hidden;
+  /* Solid background so the gradient only shows as a thin border ring */
+  background: #0a0f1e;
+  margin: 1.5px;
+}
+
+/* ─── Micro-animações de entrada ─────────────────────────────── */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-in-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease both;
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ─── Shimmer para botão principal ──────────────────────────── */
+@keyframes shimmer-slide {
+  0%   { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 100%
+  );
+  animation: shimmer-slide 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ─── Remove tap highlight azul no mobile ────────────────────── */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ─── Slow spin for Settings icon ────────────────────────────── */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 6s linear infinite;
+}
+
+/* ─── Glow sutil para números do countdown ──────────────────── */
+@keyframes count-glow {
+  0%, 100% { text-shadow: 0 0 8px rgba(99, 102, 241, 0.3); }
+  50%      { text-shadow: 0 0 16px rgba(99, 102, 241, 0.6); }
+}
+.animate-count-glow {
+  animation: count-glow 2s ease-in-out infinite;
+}
+
+/* ─── Pulse suave para ícones de status ──────────────────────── */
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 2s ease-in-out infinite;
+}
+
+/* ─── Glass card hover lift ──────────────────────────────────── */
+.glass-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+}
+
+/* ─── Prevent text selection on interactive elements ─────────── */
+button, label {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   LIGHT MODE — inspirado no UI da Asana
+   (fundo lavanda suave, cards brancos, primary violeta, clean)
+   ════════════════════════════════════════════════════════════════ */
+#public-main-root.light-mode {
+  --lm-bg: #f5f4f8;
+  --lm-bg-card: #ffffff;
+  --lm-bg-elevated: #ffffff;
+  --lm-text: #1a1a2e;
+  --lm-text-secondary: #5a5a7a;
+  --lm-text-muted: #9494b0;
+  --lm-primary: #6c5ce7;
+  --lm-primary-soft: rgba(108, 92, 231, 0.08);
+  --lm-border: #e2e0e8;
+  --lm-border-strong: #d0cee0;
+}
+
+/* Body */
+#public-main-root.light-mode ~ body,
+#public-main-root.light-mode {
+  background: #f5f4f8 !important;
+}
+
+/* Title gradient in light mode */
+#public-main-root.light-mode #main-header h1 {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  background: linear-gradient(135deg, #6c5ce7, #3b82f6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+/* Banner gradient overlay - light mode uses bg color instead of black */
+#public-main-root.light-mode #main-banner-layout > div:first-child > .absolute.inset-0 {
+  background: linear-gradient(to top, rgba(245, 244, 248, 0.9), rgba(245, 244, 248, 0.15), transparent) !important;
+}
+#public-main-root.light-mode #main-banner-layout > div:first-child {
+  box-shadow: 0 4px 24px rgba(108, 92, 231, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ───── TEXTOS ───── */
+#public-main-root.light-mode [class*="text-white"]:not([class*="hover"]):not([class*="text-white/"]):not([id="btn-adicionar-novo-nome"]) {
+  color: #1a1a2e !important;
+}
+#public-main-root.light-mode [class*="text-white/90"] {
+  color: #1a1a2e !important;
+}
+#public-main-root.light-mode [class*="text-white/60"] {
+  color: #5a5a7a !important;
+}
+#public-main-root.light-mode [class*="text-white/55"] {
+  color: #5a5a7a !important;
+}
+#public-main-root.light-mode [class*="text-white/50"] {
+  color: #5a5a7a !important;
+}
+#public-main-root.light-mode [class*="text-white/40"],
+#public-main-root.light-mode [class*="text-white/30"] {
+  color: #9494b0 !important;
+}
+#public-main-root.light-mode [class*="text-white/20"] {
+  color: rgba(0, 0, 0, 0.12) !important;
+}
+#public-main-root.light-mode [class*="text-indigo-200"],
+#public-main-root.light-mode .text-indigo-200\/80,
+#public-main-root.light-mode .text-indigo-200\/60 {
+  color: #5a5a7a !important;
+}
+#public-main-root.light-mode [class*="text-indigo-300"]:not([class*="bg"]):not([class*="text-indigo-300/80"]):not([class*="text-indigo-300/60"]) {
+  color: #6c5ce7 !important;
+}
+#public-main-root.light-mode .text-indigo-300\/80 {
+  color: #6c5ce7 !important;
+}
+#public-main-root.light-mode .text-indigo-300\/60 {
+  color: #6c5ce7 !important;
+}
+#public-main-root.light-mode [class*="text-indigo-100"],
+#public-main-root.light-mode [class*="text-indigo-205"],
+#public-main-root.light-mode [class*="text-indigo-250"] {
+  color: #5a5a7a !important;
+}
+#public-main-root.light-mode .text-amber-400 {
+  color: #d97706 !important;
+}
+#public-main-root.light-mode [class*="text-indigo-200/50"],
+#public-main-root.light-mode [class*="text-indigo-200/65"] {
+  color: #9494b0 !important;
+}
+#public-main-root.light-mode .text-emerald-300,
+#public-main-root.light-mode .text-emerald-500 {
+  color: #059669 !important;
+}
+
+/* ───── CARDS ───── */
+#public-main-root.light-mode [class*="bg-white/5"],
+#public-main-root.light-mode [class*="bg-white/10"],
+#public-main-root.light-mode [class*="bg-white/15"] {
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+#public-main-root.light-mode [class*="bg-black/40"],
+#public-main-root.light-mode [class*="bg-black/50"],
+#public-main-root.light-mode [class*="bg-black/60"],
+#public-main-root.light-mode [class*="bg-black/70"] {
+  background: #f0eef4 !important;
+}
+#public-main-root.light-mode [class*="bg-indigo-600/30"],
+#public-main-root.light-mode [class*="bg-indigo-500/20"],
+#public-main-root.light-mode [class*="bg-indigo-600/40"] {
+  background: rgba(108, 92, 231, 0.07) !important;
+}
+#public-main-root.light-mode [class*="bg-indigo-950"],
+#public-main-root.light-mode [class*="from-indigo-950"] {
+  background: #eeebf6 !important;
+}
+#public-main-root.light-mode [class*="from-indigo-950"],
+#public-main-root.light-mode [class*="via-slate-900"],
+#public-main-root.light-mode [class*="to-indigo-950"] {
+  background: linear-gradient(to right, #e6e1f5, #f5f4f8, #e6e1f5) !important;
+}
+#public-main-root.light-mode [class*="bg-indigo-500/20"] {
+  background: rgba(108, 92, 231, 0.07) !important;
+}
+#public-main-root.light-mode [id="guest-list-container"] [class*="bg-indigo-500/20"] {
+  background: rgba(108, 92, 231, 0.08) !important;
+}
+
+/* ───── BORDAS ───── */
+#public-main-root.light-mode [class*="border-white/10"],
+#public-main-root.light-mode [class*="border-white/20"],
+#public-main-root.light-mode [class*="border-white/30"] {
+  border-color: #e2e0e8 !important;
+}
+#public-main-root.light-mode [class*="border-indigo-500/20"],
+#public-main-root.light-mode [class*="border-indigo-500/30"],
+#public-main-root.light-mode [class*="border-indigo-500/40"] {
+  border-color: rgba(108, 92, 231, 0.22) !important;
+}
+#public-main-root.light-mode [class*="border-dashed"] {
+  border-color: rgba(108, 92, 231, 0.18) !important;
+}
+
+/* ───── INPUT ───── */
+#public-main-root.light-mode .input-glow-wrapper .input-inner {
+  background: #ffffff !important;
+  outline: 1px solid #e2e0e8 !important;
+  outline-offset: -1px;
+  transition: outline-color 0.2s ease;
+}
+#public-main-root.light-mode .input-glow-wrapper.is-active .input-inner {
+  outline-color: transparent !important;
+}
+#public-main-root.light-mode .input-glow-wrapper input {
+  background: transparent !important;
+}
+#public-main-root.light-mode input::placeholder {
+  color: #e0e0f0 !important;
+  opacity: 0.35 !important;
+}
+#public-main-root.light-mode input,
+#public-main-root.light-mode input[class*="text-white"] {
+  color: #4f46e5 !important;
+  -webkit-text-fill-color: #4f46e5 !important;
+}
+
+/* ───── METRICS ───── */
+#public-main-root.light-mode [class*="from-indigo-600/20"] {
+  background: linear-gradient(to bottom, rgba(108, 92, 231, 0.08), rgba(108, 92, 231, 0.02)) !important;
+  border-top-color: rgba(0, 0, 0, 0.06) !important;
+  border-right-color: rgba(0, 0, 0, 0.06) !important;
+  border-left-color: rgba(0, 0, 0, 0.06) !important;
+  border-bottom: 3px solid rgba(108, 92, 231, 0.3) !important;
+  box-shadow: none !important;
+}
+#public-main-root.light-mode [class*="from-blue-600/20"] {
+  background: linear-gradient(to bottom, rgba(37, 99, 235, 0.08), rgba(37, 99, 235, 0.02)) !important;
+  border-top-color: rgba(0, 0, 0, 0.06) !important;
+  border-right-color: rgba(0, 0, 0, 0.06) !important;
+  border-left-color: rgba(0, 0, 0, 0.06) !important;
+  border-bottom: 3px solid rgba(37, 99, 235, 0.3) !important;
+  box-shadow: none !important;
+}
+#public-main-root.light-mode [class*="from-pink-600/20"] {
+  background: linear-gradient(to bottom, rgba(219, 39, 119, 0.08), rgba(219, 39, 119, 0.02)) !important;
+  border-top-color: rgba(0, 0, 0, 0.06) !important;
+  border-right-color: rgba(0, 0, 0, 0.06) !important;
+  border-left-color: rgba(0, 0, 0, 0.06) !important;
+  border-bottom: 3px solid rgba(219, 39, 119, 0.3) !important;
+  box-shadow: none !important;
+}
+#public-main-root.light-mode [class*="text-blue-300/80"] {
+  color: #2563eb !important;
+}
+#public-main-root.light-mode [class*="text-pink-300/80"] {
+  color: #db2777 !important;
+}
+
+/* ───── COUNTDOWN ───── */
+#public-main-root.light-mode [id="countdown-card"] [class*="bg-white/10"] {
+  background: #ffffff !important;
+  border-color: #e2e0e8 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+#public-main-root.light-mode [id*="countdown"] .tabular-nums {
+  color: #1a1a2e !important;
+}
+#public-main-root.light-mode [id*="countdown"] [class*="opacity-60"] {
+  opacity: 1 !important;
+  color: #5a5a7a !important;
+}
+
+/* ───── GENDER SELECTION ───── */
+#public-main-root.light-mode [id="gender-selection-grid"] label {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  color: #9494b0 !important;
+  background: transparent !important;
+  transition: all 0.15s ease;
+}
+#public-main-root.light-mode [id="gender-selection-grid"] label:has(input[value="M"]:checked) {
+  color: #3b82f6 !important;
+  background: transparent !important;
+  border: 3px solid #3b82f6 !important;
+}
+#public-main-root.light-mode [id="gender-selection-grid"] label:has(input[value="F"]:checked) {
+  color: #ec4899 !important;
+  background: transparent !important;
+  border: 3px solid #ec4899 !important;
+}
+
+/* ───── FOOTER ───── */
+#public-main-root.light-mode [id="brand-footer"] {
+  border-color: #e2e0e8 !important;
+  background: #ffffff !important;
+}
+#public-main-root.light-mode [id="brand-footer"] [class*="text-white/55"],
+#public-main-root.light-mode [id="brand-footer"] [class*="text-indigo-200/80"],
+#public-main-root.light-mode #copyright-text {
+  color: #5a5a7a !important;
+}
+#public-main-root.light-mode [id="brand-footer"] h2 {
+  color: #1a1a2e !important;
+}
+
+/* ───── QUICK ADD ───── */
+#public-main-root.light-mode [id="quick-add-panel"] [class*="text-indigo-300"] {
+  color: #6c5ce7 !important;
+}
+#public-main-root.light-mode [id="quick-add-panel"] button {
+  color: #5a5a7a !important;
+  border-color: #e2e0e8 !important;
+  background: #ffffff !important;
+}
+#public-main-root.light-mode [id="quick-add-panel"] button:hover {
+  background: #f5f4f8 !important;
+  border-color: #d0cee0 !important;
+}
+
+/* ───── LISTA ───── */
+#public-main-root.light-mode [id="guest-list-container"] [class*="text-indigo-300"] {
+  color: #6c5ce7 !important;
+}
+#public-main-root.light-mode [id="guest-list-container"] .text-white\/30 {
+  color: #9494b0 !important;
+}
+
+/* ───── SCROLLBAR ───── */
+#public-main-root.light-mode ::-webkit-scrollbar-track {
+  background: transparent;
+}
+#public-main-root.light-mode ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+}
+#public-main-root.light-mode ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Date/time card */
+#public-main-root.light-mode [id="main-header"] .bg-emerald-500\/20 {
+  background: rgba(5, 150, 105, 0.08) !important;
+  border-color: rgba(5, 150, 105, 0.2) !important;
+}
+#public-main-root.light-mode [id="main-header"] [class*="text-emerald-400"] {
+  color: rgba(5, 150, 105, 0.6) !important;
+}
+#public-main-root.light-mode [id="main-header"] [class*="text-white"]:not([class*="text-white/"]) {
+  color: #065f46 !important;
+}
+#public-main-root.light-mode [id="main-header"] [class*="text-white/40"] {
+  color: rgba(6, 95, 70, 0.25) !important;
+}
