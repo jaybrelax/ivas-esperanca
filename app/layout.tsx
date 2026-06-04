@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
-  description: 'Confirme seu nome na lista de orações semanais. Adicione seu nome à lista de participantes de forma rápida e simples.',
+  description: 'Confirme seu nome na lista de oração.',
   openGraph: {
     title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
     description: 'Confirme seu nome na lista de orações semanais.',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
         url: 'https://esperanca.virtudes.net.br/IMG/featured-image2.png',
         width: 1200,
         height: 630,
-        type: 'image/webp',
+        type: 'image/png',
       },
     ],
     locale: 'pt_BR',
