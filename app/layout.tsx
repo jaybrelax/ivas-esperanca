@@ -4,6 +4,28 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
   description: 'Confirme seu nome na lista de orações semanais. Adicione seu nome à lista de participantes de forma rápida e simples.',
+  openGraph: {
+    title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
+    description: 'Confirme seu nome na lista de orações semanais.',
+    url: 'https://esperanca.virtudes.net.br',
+    siteName: 'Cadeia de Oração | IVAS',
+    images: [
+      {
+        url: 'https://esperanca.virtudes.net.br/IMG/featured-image2.webp',
+        width: 1200,
+        height: 630,
+        type: 'image/webp',
+      },
+    ],
+    locale: 'pt_BR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
+    description: 'Confirme seu nome na lista de orações semanais.',
+    images: ['https://esperanca.virtudes.net.br/IMG/featured-image2.webp'],
+  },
 };
 
 export const viewport: Viewport = {
