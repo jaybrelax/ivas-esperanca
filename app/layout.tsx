@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Gestor de Eventos & Presenças',
+  title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
   description: 'Confirme sua presença nos eventos semanais. Adicione seu nome à lista de participantes de forma rápida e simples.',
 };
 

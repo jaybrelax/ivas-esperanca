@@ -701,25 +701,6 @@
                 </div>
               </div>
 
-              {/* Overall Count Metrics */}
-              {allParticipants.length > 0 && (
-                <div className="flex justify-center mt-6" id="metrics-section">
-                  <div className="grid grid-cols-3 gap-2 md:gap-3 w-full max-w-sm">
-                    <div className="flex flex-col items-center bg-gradient-to-b from-indigo-600/20 to-indigo-600/5 border border-indigo-500/20 rounded-2xl py-3 md:py-4 px-2 shadow-lg">
-                      <span className="text-xl md:text-2xl font-black text-white font-mono tabular-nums">{allParticipants.length}</span>
-                      <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-indigo-300/80 mt-0.5">Total</span>
-                    </div>
-                    <div className="flex flex-col items-center bg-gradient-to-b from-blue-600/20 to-blue-600/5 border border-blue-500/20 rounded-2xl py-3 md:py-4 px-2 shadow-lg">
-                      <span className="text-xl md:text-2xl font-black text-white font-mono tabular-nums">{allParticipants.filter(p => p.sexo==='M').length}</span>
-                      <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-blue-300/80 mt-0.5">Masculinos</span>
-                    </div>
-                    <div className="flex flex-col items-center bg-gradient-to-b from-pink-600/20 to-pink-600/5 border border-pink-500/20 rounded-2xl py-3 md:py-4 px-2 shadow-lg">
-                      <span className="text-xl md:text-2xl font-black text-white font-mono tabular-nums">{allParticipants.filter(p => p.sexo==='F').length}</span>
-                      <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-pink-300/80 mt-0.5">Femininos</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 

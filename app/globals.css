@@ -465,6 +465,15 @@ button, label {
   background: #f5f4f8 !important;
   border-color: #d0cee0 !important;
 }
+#public-main-root.light-mode [id="registration-form-card"] .rounded-full {
+  color: #5a5a7a !important;
+  border-color: #e2e0e8 !important;
+  background: #ffffff !important;
+}
+#public-main-root.light-mode [id="registration-form-card"] .rounded-full:hover {
+  background: #f5f4f8 !important;
+  border-color: #d0cee0 !important;
+}
 
 /* ───── LISTA ───── */
 #public-main-root.light-mode [id="guest-list-container"] [class*="text-indigo-300"] {

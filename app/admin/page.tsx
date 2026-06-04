@@ -471,7 +471,7 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8" id="tab-events-root">
                   
                   {/* Left panel: List of events */}
-                  <div className="lg:col-span-4 space-y-3 md:space-y-4 animate-fade-in-up">
+                  <div className="lg:col-span-4 space-y-3 md:space-y-4 animate-fade-in-up lg:sticky lg:top-5 lg:self-start">
                     <div className="pb-3">
                       <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg bg-white/10 shadow-lg px-5 py-3 mb-3">
                         <div className="flex justify-between items-center">
@@ -497,7 +497,7 @@ export default function AdminDashboard() {
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             onSubmit={handleCreateCustomEvent}
-                            className="bg-black/40 p-4 rounded-xl border border-white/10 mb-4 mx-5 space-y-4 overflow-hidden text-xs"
+                            className="bg-black/40 p-4 rounded-xl border border-white/10 mb-4 space-y-4 overflow-hidden text-xs"
                           >
                             <div className="flex justify-center text-white mb-2">
                               <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-300">{isEditingEvent ? "Editar Oração" : "Escolha a Data da Oração"}</h3>
@@ -519,26 +519,35 @@ export default function AdminDashboard() {
                                   required
                                   value={newEventTime}
                                   onChange={(e) => setNewEventTime(e.target.value)}
-                                  className="w-full pl-10 pr-3 py-2.5 bg-black/45 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500 font-mono text-sm"
+                                  className="flex-1 pl-10 pr-3 py-2.5 bg-black/45 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500 font-mono text-sm"
                                 />
+                                <button
+                                  type="button"
+                                  onClick={handleCreateAutoFriday}
+                                  className="bg-white/5 hover:bg-white/10 text-white/90 font-semibold py-2 px-3 rounded-lg transition-colors border border-white/10 flex items-center justify-center gap-1.5 cursor-pointer text-[10px] shrink-0"
+                                  title="Selecionar próxima sexta"
+                                >
+                                  <Calendar size={12} />
+                                  Próxima Sexta
+                                </button>
                               </div>
                             </div>
                             
                             <div className="flex gap-2 pt-2">
-                              {/* Automatic Friday logic combined into the main flow for convenience */}
                               <button
                                 type="button"
-                                onClick={handleCreateAutoFriday}
-                                className="w-1/2 bg-white/5 hover:bg-white/10 text-white/90 font-semibold py-2 px-3 rounded-xl transition-colors border border-white/10 flex items-center justify-center gap-1.5 cursor-pointer text-[10px]"
-                                title="Atalho: Cria para próxima sexta as 20h"
+                                onClick={() => {
+                                  setShowCreateEventForm(false);
+                                  setIsEditingEvent(false);
+                                }}
+                                className="w-1/2 bg-white/10 hover:bg-white/20 text-white/80 font-semibold py-3 px-3 rounded-lg transition-colors border border-white/10 flex items-center justify-center gap-1.5 cursor-pointer text-[10px]"
                               >
-                                <Calendar size={12} />
-                                Próxima Sexta
+                                Cancelar
                               </button>
                               
                               <button 
                                 type="submit"
-                                className={`w-1/2 px-4 py-2 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${!newEventDate ? 'bg-white/10 text-white/40 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}`}
+                                className={`w-1/2 px-4 py-3 rounded-lg font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${!newEventDate ? 'bg-white/10 text-white/40 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}`}
                                 disabled={!newEventDate}
                               >
                                 <Save size={14} />
@@ -689,7 +698,7 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                         
-                        <div className="border border-white/10 rounded-2xl divide-y divide-white/5 overflow-hidden shadow-inner bg-black/15 max-h-[400px] overflow-y-auto" id="participantes-editor-table">
+                        <div className="border border-white/10 rounded-2xl divide-y divide-white/5 overflow-hidden shadow-inner bg-black/15" id="participantes-editor-table">
                           {(() => {
                             const allNomes = [
                               ...selectedEvent.nomes,
@@ -745,7 +754,7 @@ export default function AdminDashboard() {
                                             {idx + 1}
                                           </span>
                                           <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${p.sexo === 'F' ? 'bg-pink-400' : 'bg-blue-400'}`} title={p.sexo === 'F' ? 'Feminino' : 'Masculino'}></span>
-                                          <span className="font-semibold text-white truncate max-w-[130px] sm:max-w-none uppercase">
+                                          <span className="font-semibold text-white uppercase">
                                             {p.nome}
                                           </span>
                                           {p.isFixo && (
@@ -753,22 +762,20 @@ export default function AdminDashboard() {
                                               Fixo
                                             </span>
                                           )}
-                                          <span className="text-[10px] text-white/40 shrink-0 hidden sm:inline">
-                                            ({p.sexo === 'F' ? 'Feminino' : 'Masculino'})
-                                          </span>
+
                                         </div>
 
                                         <div className="flex items-center gap-2.5 shrink-0">
                                           <button
                                             onClick={() => startEditingParticipant(p)}
-                                            className="p-1.5 bg-white/10 hover:bg-[#1a2b4b] text-white/90 rounded-lg duration-100 border border-white/10 edit-p-btn cursor-pointer"
+                                            className="p-1 opacity-40 hover:opacity-100 text-white/60 hover:text-white/90 transition-all duration-200 cursor-pointer"
                                             title="Editar nome ou sexo"
                                           >
                                             <Edit size={12} />
                                           </button>
                                           <button
                                             onClick={() => setDeletingParticipant({ id: p.id, nome: p.nome })}
-                                            className="p-1.5 bg-white/10 hover:bg-red-500/10 text-white/95 hover:text-red-400 rounded-lg duration-100 border border-white/10 delete-p-btn cursor-pointer"
+                                            className="p-1 opacity-40 hover:opacity-100 text-white/60 hover:text-red-400 transition-all duration-200 cursor-pointer"
                                             title="Deletar participante"
                                           >
                                             <Trash2 size={12} />
@@ -780,15 +787,23 @@ export default function AdminDashboard() {
                                 );
                               })
                             ) : (
-                              <div className="text-center py-12 text-xs text-indigo-200/50">
-                                Nenhum participante encontrado com os filtros atuais.
-                              </div>
-                            );
-                          })()}
-                        </div>
+                                  <div className="text-center py-12 text-xs text-indigo-200/50">
+                                    Nenhum participante encontrado com os filtros atuais.
+                                  </div>
+                                );
+                              })()}
+                            </div>
 
-                      </div>
-                    ) : (
+                            <button
+                              onClick={() => setDeletingEvent({ id: selectedEvent.id, numero: selectedEvent.numero })}
+                              className="mt-20 text-[10px] font-bold text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5 px-1 cursor-pointer"
+                            >
+                              <Trash2 size={12} />
+                              Excluir esta oração
+                            </button>
+
+                          </div>
+                        ) : (
                       <div className="bg-white/5 border border-dashed border-white/10 rounded-3xl p-8 text-center text-indigo-205/60 text-xs">
                         Clique em &quot;Próxima Sexta&quot; para selecionar a data ou configure uma data personalizada, depois clique em &quot;Confirmar&quot; para criar.
                       </div>
