@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
-  description: 'Confirme sua presença nos eventos semanais. Adicione seu nome à lista de participantes de forma rápida e simples.',
+  description: 'Confirme seu nome na lista de orações semanais. Adicione seu nome à lista de participantes de forma rápida e simples.',
 };
 
 export const viewport: Viewport = {

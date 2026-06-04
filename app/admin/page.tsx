@@ -823,7 +823,7 @@ export default function AdminDashboard() {
                           </button>
 
                           <a
-                            href={`/?evento=${selectedEvent.numero}`}
+                            href={`/${selectedEvent.numero}`}
                             target="_blank"
                             className="text-sm font-bold text-indigo-400/60 hover:text-indigo-400 border border-indigo-400/20 hover:border-indigo-400/40 rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 cursor-pointer"
                           >
