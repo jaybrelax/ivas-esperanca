@@ -113,9 +113,7 @@ export default function Home() {
       try {
         const brandConfig = await fetchBrandingConfig();
         setConfig(brandConfig);
-        if (brandConfig.light_mode) {
-          setThemePreference('light');
-        }
+        // Tema padrão: sempre segue o sistema. O light_mode do banco não sobrescreve mais.
 
         const list = await listAllEventos();
         setAllEvents(list);
