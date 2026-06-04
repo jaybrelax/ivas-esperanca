@@ -97,6 +97,8 @@ export default function Home() {
   const [addedThisSession, setAddedThisSession] = useState<string[]>([]);
   // Estado de foco do input de nome (para o efeito glow)
   const [isInputFocused, setIsInputFocused] = useState(false);
+  // Tolerância de 1 min após o countdown zerar
+  const [inputExpired, setInputExpired] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const formCardRef = useRef<HTMLDivElement>(null);
 
@@ -222,7 +224,11 @@ export default function Home() {
 
       if (difference <= 0) {
         setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0, isOver: true });
-        clearInterval(timer);
+        const elapsed = nowTime - targetTime;
+        if (elapsed >= 60000) {
+          setInputExpired(true);
+          clearInterval(timer);
+        }
       } else {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
         const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -523,8 +529,8 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-indigo-600/30 border border-indigo-500/30 backdrop-blur-md text-white p-4 md:p-5 rounded-2xl shadow-md text-center mx-auto"
               >
-                <p className="font-bold text-base md:text-lg">🚀 O evento já começou!</p>
-                <p className="text-[10px] md:text-xs text-indigo-205 mt-1">A lista permanece aberta para correções de última hora.</p>
+                <p className="font-bold text-base md:text-lg">{inputExpired ? '📢 A oração já começou!' : '🚀 A oração vai começar!'}</p>
+                <p className="text-[10px] md:text-xs text-indigo-200 mt-1">{inputExpired ? 'A lista de inscrição foi encerrada.' : 'A lista permanece aberta para correções de última hora.'}</p>
               </motion.div>
             ) : (
               <div className="flex mx-auto text-center bg-gradient-to-br from-[#0f1422] via-[#121829] to-[#0d111e] border border-indigo-500/40 rounded-2xl overflow-hidden shadow-lg shadow-indigo-500/30 animate-card-glow relative" id="countdown-grid">
@@ -557,173 +563,179 @@ export default function Home() {
 
         {/* Quick Add Saved names + Registration Card Form unificados */}
         {activeEvent ? (
-          <div ref={formCardRef} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-2xl mx-auto mb-8 md:mb-12 flex flex-col gap-4 md:gap-5 animate-fade-in-up" id="registration-form-card" style={{ animationDelay: '0.2s' }}>
+          inputExpired ? (
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-2xl mx-auto mb-8 md:mb-12 text-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <p className="text-white/60 font-medium text-sm md:text-base">📢 A lista de inscrição foi encerrada. Volte na próxima lista!</p>
+            </div>
+          ) : (
+            <div ref={formCardRef} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-2xl mx-auto mb-8 md:mb-12 flex flex-col gap-4 md:gap-5 animate-fade-in-up" id="registration-form-card" style={{ animationDelay: '0.2s' }}>
 
-            {/* Cabeçalho e pré-salvos apenas se houver */}
-            {savedNames.length > 0 ? (
-              <>
-                <div className="flex justify-between items-center" id="quick-add-panel">
-                  <span className="text-xs font-bold text-indigo-300 flex items-center gap-1">
-                    <Zap size={14} className="text-amber-500 fill-amber-500" />
-                    Seus Nomes Pré-Salvos (1 clique)
-                  </span>
-                  <button
-                    onClick={() => setShowClearConfirm(true)}
-                    className="text-[10px] text-white/40 hover:text-red-400 transition-colors"
-                    title="Limpar sugestões locais"
-                  >
-                    Limpar sugestões
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {savedNames.filter(item => !addedThisSession.includes(item.nome.toLowerCase()) && !activeEvent?.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())).map((item, idx) => (
+              {/* Cabeçalho e pré-salvos apenas se houver */}
+              {savedNames.length > 0 ? (
+                <>
+                  <div className="flex justify-between items-center" id="quick-add-panel">
+                    <span className="text-xs font-bold text-indigo-300 flex items-center gap-1">
+                      <Zap size={14} className="text-amber-500 fill-amber-500" />
+                      Seus NOMES Pré-Salvos (1 clique)
+                    </span>
                     <button
-                      key={idx}
-                      onClick={() => handleQuickRegister(item.nome, item.sexo)}
-                      className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-xs flex items-center gap-2 hover:bg-white/10 transition-colors text-white font-medium cursor-pointer"
+                      onClick={() => setShowClearConfirm(true)}
+                      className="text-[10px] text-white/40 hover:text-red-400 transition-colors"
+                      title="Limpar sugestões locais"
                     >
-                      <span className={`font-black ${item.sexo === 'F' ? 'text-pink-400' : 'text-blue-400'}`}>
-                        {item.sexo === 'F' ? '♀️' : '♂️'}
-                      </span>
-                      <span className="uppercase">+ {item.nome}</span>
+                      Limpar sugestões
                     </button>
-                  ))}
-                  {savedNames.every(item => addedThisSession.includes(item.nome.toLowerCase()) || activeEvent?.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())) && (
-                    <p className="text-xs text-indigo-300/60 font-medium py-1">✅ Todos os seus nomes salvos já foram adicionados!</p>
-                  )}
-                </div>
-
-                {/* Botão para abrir formulário / X para fechar */}
-                {!showAddForm ? (
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => setShowAddForm(true)}
-                    className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-sm font-bold uppercase tracking-widest shadow-lg shadow-indigo-600/30 border border-indigo-400/30 btn-shimmer"
-                    id="btn-adicionar-novo-nome"
-                  >
-                    <span className="text-xl leading-none font-light">+</span> Adicionar novo nome
-                  </motion.button>
-                ) : (
-                  <>
-                    <div className="flex justify-between items-center border-t border-white/10 pt-4">
-                      <h2 className="text-sm font-semibold border-l-4 border-indigo-500 pl-3 uppercase tracking-wider text-white">
-                        Adicionar nomes à lista
-                      </h2>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {savedNames.filter(item => !addedThisSession.includes(item.nome.toLowerCase()) && !activeEvent?.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())).map((item, idx) => (
                       <button
-                        onClick={() => { setShowAddForm(false); setInputNome(''); setInputSexo(''); }}
-                        className="p-1.5 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                        title="Fechar"
+                        key={idx}
+                        onClick={() => handleQuickRegister(item.nome, item.sexo)}
+                        className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-xs flex items-center gap-2 hover:bg-white/10 transition-colors text-white font-medium cursor-pointer"
                       >
-                        <X size={16} />
+                        <span className={`font-black ${item.sexo === 'F' ? 'text-pink-400' : 'text-blue-400'}`}>
+                          {item.sexo === 'F' ? '♀️' : '♂️'}
+                        </span>
+                        <span className="uppercase">+ {item.nome}</span>
                       </button>
-                    </div>
-                    <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
-                      <div className="w-full">
-                        <label htmlFor="input-nome-participante" className="block text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Nome e Sobrenome</label>
-                        <div className={`input-glow-wrapper ${(isInputFocused || inputNome.length > 0) ? 'is-active' : ''}`}>
-                          <div className="input-inner">
-                            <div className="relative">
-                              <span className={`absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none transition-colors duration-300 ${isInputFocused || inputNome ? 'text-indigo-400' : 'text-white/40'}`}><User size={16} /></span>
-                              <input
-                                ref={inputRef}
-                                id="input-nome-participante"
-                                type="text"
-                                required
-                                value={inputNome}
-                                onChange={(e) => setInputNome(e.target.value)}
-                                onFocus={() => setIsInputFocused(true)}
-                                onBlur={() => setIsInputFocused(false)}
-                                placeholder="Ex: João Silva"
-                                className="w-full pl-9 pr-4 h-[56px] bg-black/60 border-0 outline-none rounded-[11px] placeholder:text-white/20 text-base font-semibold text-white uppercase"
-                              />
+                    ))}
+                    {savedNames.every(item => addedThisSession.includes(item.nome.toLowerCase()) || activeEvent?.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())) && (
+                      <p className="text-xs text-indigo-300/60 font-medium py-1">✅ Todos os seus nomes salvos já foram adicionados!</p>
+                    )}
+                  </div>
+
+                  {/* Botão para abrir formulário / X para fechar */}
+                  {!showAddForm ? (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => setShowAddForm(true)}
+                      className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-sm font-bold uppercase tracking-widest shadow-lg shadow-indigo-600/30 border border-indigo-400/30 btn-shimmer"
+                      id="btn-adicionar-novo-nome"
+                    >
+                      <span className="text-xl leading-none font-light">+</span> Adicionar novo nome
+                    </motion.button>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center border-t border-white/10 pt-4">
+                        <h2 className="text-sm font-semibold border-l-4 border-indigo-500 pl-3 uppercase tracking-wider text-white">
+                          Adicionar nomes à lista
+                        </h2>
+                        <button
+                          onClick={() => { setShowAddForm(false); setInputNome(''); setInputSexo(''); }}
+                          className="p-1.5 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                          title="Fechar"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                      <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
+                        <div className="w-full">
+                          <label htmlFor="input-nome-participante" className="block text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Nome e Sobrenome</label>
+                          <div className={`input-glow-wrapper ${(isInputFocused || inputNome.length > 0) ? 'is-active' : ''}`}>
+                            <div className="input-inner">
+                              <div className="relative">
+                                <span className={`absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none transition-colors duration-300 ${isInputFocused || inputNome ? 'text-indigo-400' : 'text-white/40'}`}><User size={16} /></span>
+                                <input
+                                  ref={inputRef}
+                                  id="input-nome-participante"
+                                  type="text"
+                                  required
+                                  value={inputNome}
+                                  onChange={(e) => setInputNome(e.target.value)}
+                                  onFocus={() => setIsInputFocused(true)}
+                                  onBlur={() => setIsInputFocused(false)}
+                                  placeholder="Ex: João Silva"
+                                  className="w-full pl-9 pr-4 h-[56px] bg-black/60 border-0 outline-none rounded-[11px] placeholder:text-white/20 text-base font-semibold text-white uppercase"
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex flex-col md:flex-row gap-4 items-end">
-                        <div className="w-full md:flex-1 shrink-0">
-                          <span className="block text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Gênero</span>
-                          <div className="grid grid-cols-2 gap-2 h-[56px]" id="gender-selection-grid">
-                            <label className={`flex items-center justify-center gap-1.5 rounded-xl border text-sm font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'M' ? 'border-indigo-500/50 bg-indigo-500/20 text-white font-bold shadow-lg shadow-indigo-500/10' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
-                              <input type="radio" name="sexo" value="M" checked={inputSexo === 'M'} onChange={() => setInputSexo('M')} className="sr-only" />
-                              <span className="text-blue-400 font-bold text-base leading-none mt-[1px]">♂️</span>
-                              <span>Masculino</span>
-                            </label>
-                            <label className={`flex items-center justify-center gap-1.5 rounded-xl border text-sm font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'F' ? 'border-pink-500/50 bg-pink-500/20 text-white font-bold shadow-lg shadow-pink-500/10' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
-                              <input type="radio" name="sexo" value="F" checked={inputSexo === 'F'} onChange={() => setInputSexo('F')} className="sr-only" />
-                              <span className="text-pink-400 font-bold text-base leading-none mt-[1px]">♀️</span>
-                              <span>Feminino</span>
-                            </label>
+                        <div className="flex flex-col md:flex-row gap-4 items-end">
+                          <div className="w-full md:flex-1 shrink-0">
+                            <span className="block text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Gênero</span>
+                            <div className="grid grid-cols-2 gap-2 h-[56px]" id="gender-selection-grid">
+                              <label className={`flex items-center justify-center gap-1.5 rounded-xl border text-sm font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'M' ? 'border-indigo-500/50 bg-indigo-500/20 text-white font-bold shadow-lg shadow-indigo-500/10' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
+                                <input type="radio" name="sexo" value="M" checked={inputSexo === 'M'} onChange={() => setInputSexo('M')} className="sr-only" />
+                                <span className="text-blue-400 font-bold text-base leading-none mt-[1px]">♂️</span>
+                                <span>Masculino</span>
+                              </label>
+                              <label className={`flex items-center justify-center gap-1.5 rounded-xl border text-sm font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'F' ? 'border-pink-500/50 bg-pink-500/20 text-white font-bold shadow-lg shadow-pink-500/10' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
+                                <input type="radio" name="sexo" value="F" checked={inputSexo === 'F'} onChange={() => setInputSexo('F')} className="sr-only" />
+                                <span className="text-pink-400 font-bold text-base leading-none mt-[1px]">♀️</span>
+                                <span>Feminino</span>
+                              </label>
+                            </div>
+                          </div>
+                          <div className="w-full md:flex-1 shrink-0">
+                            <button type="submit" className="w-full h-[56px] bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all uppercase tracking-widest text-xs md:text-sm cursor-pointer flex items-center justify-center gap-1.5 btn-shimmer" id="btn-confirmar-presenca">
+                              <span>Inserir na Lista</span>
+                            </button>
                           </div>
                         </div>
-                        <div className="w-full md:flex-1 shrink-0">
-                          <button type="submit" className="w-full h-[56px] bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all uppercase tracking-widest text-xs md:text-sm cursor-pointer flex items-center justify-center gap-1.5 btn-shimmer" id="btn-confirmar-presenca">
-                            <span>Inserir na Lista</span>
-                          </button>
-                        </div>
-                      </div>
-                    </form>
-                  </>
-                )}
-              </>
-            ) : (
-              /* Sem pré-salvos: exibe o formulário completo direto */
-              <>
-                <h2 className="text-sm md:text-lg font-semibold border-l-4 border-indigo-500 pl-3 uppercase tracking-wider text-white">
-                  Adicionar nomes à lista (um por vez)
-                </h2>
-                <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
-                  <div className="w-full">
-                    <label htmlFor="input-nome-participante" className="block text-[10px] md:text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Nome e Sobrenome</label>
-                    <div className={`input-glow-wrapper ${(isInputFocused || inputNome.length > 0) ? 'is-active' : ''}`}>
-                      <div className="input-inner">
-                        <div className="relative">
-                          <span className={`absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none transition-colors duration-300 ${isInputFocused || inputNome ? 'text-indigo-400' : 'text-white/40'}`}><User size={16} /></span>
-                          <input
-                            ref={inputRef}
-                            id="input-nome-participante"
-                            type="text"
-                            required
-                            value={inputNome}
-                            onChange={(e) => setInputNome(e.target.value)}
-                            onFocus={() => setIsInputFocused(true)}
-                            onBlur={() => setIsInputFocused(false)}
-                            placeholder="Ex: João Silva"
-                            className="w-full pl-9 pr-4 h-[52px] md:h-[56px] bg-black/60 border-0 outline-none rounded-[11px] placeholder:text-white/20 text-sm md:text-base font-semibold text-white uppercase"
-                          />
+                      </form>
+                    </>
+                  )}
+                </>
+              ) : (
+                /* Sem pré-salvos: exibe o formulário completo direto */
+                <>
+                  <h2 className="text-sm md:text-lg font-semibold border-l-4 border-indigo-500 pl-3 uppercase tracking-wider text-white">
+                    Adicionar nomes à lista (um por vez)
+                  </h2>
+                  <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
+                    <div className="w-full">
+                      <label htmlFor="input-nome-participante" className="block text-[10px] md:text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Nome e Sobrenome</label>
+                      <div className={`input-glow-wrapper ${(isInputFocused || inputNome.length > 0) ? 'is-active' : ''}`}>
+                        <div className="input-inner">
+                          <div className="relative">
+                            <span className={`absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none transition-colors duration-300 ${isInputFocused || inputNome ? 'text-indigo-400' : 'text-white/40'}`}><User size={16} /></span>
+                            <input
+                              ref={inputRef}
+                              id="input-nome-participante"
+                              type="text"
+                              required
+                              value={inputNome}
+                              onChange={(e) => setInputNome(e.target.value)}
+                              onFocus={() => setIsInputFocused(true)}
+                              onBlur={() => setIsInputFocused(false)}
+                              placeholder="Ex: João Silva"
+                              className="w-full pl-9 pr-4 h-[52px] md:h-[56px] bg-black/60 border-0 outline-none rounded-[11px] placeholder:text-white/20 text-sm md:text-base font-semibold text-white uppercase"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col md:flex-row gap-4 items-end">
-                    <div className="w-full md:flex-1 shrink-0">
-                      <span className="block text-[10px] md:text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Gênero</span>
-                      <div className="grid grid-cols-2 gap-2 h-[52px] md:h-[56px]" id="gender-selection-grid">
-                        <label className={`flex items-center justify-center gap-1.5 rounded-xl border text-xs md:text-sm font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'M' ? 'border-indigo-500/50 bg-indigo-500/20 text-white font-bold shadow-lg shadow-indigo-500/10' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
-                          <input type="radio" name="sexo" value="M" checked={inputSexo === 'M'} onChange={() => setInputSexo('M')} className="sr-only" />
-                          <span className="text-blue-400 font-bold text-sm md:text-base leading-none mt-[1px]">♂️</span>
-                          <span>Masculino</span>
-                        </label>
-                        <label className={`flex items-center justify-center gap-1.5 rounded-xl border text-xs md:text-sm font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'F' ? 'border-pink-500/50 bg-pink-500/20 text-white font-bold shadow-lg shadow-pink-500/10' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
-                          <input type="radio" name="sexo" value="F" checked={inputSexo === 'F'} onChange={() => setInputSexo('F')} className="sr-only" />
-                          <span className="text-pink-400 font-bold text-sm md:text-base leading-none mt-[1px]">♀️</span>
-                          <span>Feminino</span>
-                        </label>
+                    <div className="flex flex-col md:flex-row gap-4 items-end">
+                      <div className="w-full md:flex-1 shrink-0">
+                        <span className="block text-[10px] md:text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Gênero</span>
+                        <div className="grid grid-cols-2 gap-2 h-[52px] md:h-[56px]" id="gender-selection-grid">
+                          <label className={`flex items-center justify-center gap-1.5 rounded-xl border text-xs md:text-sm font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'M' ? 'border-indigo-500/50 bg-indigo-500/20 text-white font-bold shadow-lg shadow-indigo-500/10' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
+                            <input type="radio" name="sexo" value="M" checked={inputSexo === 'M'} onChange={() => setInputSexo('M')} className="sr-only" />
+                            <span className="text-blue-400 font-bold text-sm md:text-base leading-none mt-[1px]">♂️</span>
+                            <span>Masculino</span>
+                          </label>
+                          <label className={`flex items-center justify-center gap-1.5 rounded-xl border text-xs md:text-sm font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'F' ? 'border-pink-500/50 bg-pink-500/20 text-white font-bold shadow-lg shadow-pink-500/10' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
+                            <input type="radio" name="sexo" value="F" checked={inputSexo === 'F'} onChange={() => setInputSexo('F')} className="sr-only" />
+                            <span className="text-pink-400 font-bold text-sm md:text-base leading-none mt-[1px]">♀️</span>
+                            <span>Feminino</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div className="w-full md:flex-1 shrink-0">
+                        <button type="submit" className="w-full h-[52px] md:h-[56px] bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all uppercase tracking-widest text-xs md:text-sm cursor-pointer flex items-center justify-center gap-1.5 btn-shimmer" id="btn-confirmar-presenca">
+                          <span>Inserir na Lista</span>
+                        </button>
                       </div>
                     </div>
-                    <div className="w-full md:flex-1 shrink-0">
-                      <button type="submit" className="w-full h-[52px] md:h-[56px] bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all uppercase tracking-widest text-xs md:text-sm cursor-pointer flex items-center justify-center gap-1.5 btn-shimmer" id="btn-confirmar-presenca">
-                        <span>Inserir na Lista</span>
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </>
-            )}
-          </div>
+                  </form>
+                </>
+              )}
+            </div>
+          )
         ) : (
           <div className="text-center py-10 md:py-12 bg-white/5 backdrop-blur-md rounded-2xl border border-dashed border-white/10 mx-auto mb-8 md:mb-12">
             <Calendar className="mx-auto text-indigo-300 mb-3" size={36} />
@@ -839,8 +851,8 @@ export default function Home() {
                       type="button"
                       onClick={() => setEditSexo('M')}
                       className={`py-2.5 px-3 rounded-lg border text-xs font-bold transition-all ${editSexo === 'M'
-                          ? 'border-indigo-500/50 bg-indigo-500/20 text-white shadow-lg'
-                          : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+                        ? 'border-indigo-500/50 bg-indigo-500/20 text-white shadow-lg'
+                        : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
                         }`}
                     >
                       ♂️ Masculino
@@ -849,8 +861,8 @@ export default function Home() {
                       type="button"
                       onClick={() => setEditSexo('F')}
                       className={`py-2.5 px-3 rounded-lg border text-xs font-bold transition-all ${editSexo === 'F'
-                          ? 'border-pink-500/50 bg-pink-500/20 text-white shadow-lg'
-                          : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+                        ? 'border-pink-500/50 bg-pink-500/20 text-white shadow-lg'
+                        : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
                         }`}
                     >
                       ♀️ Feminino
@@ -907,12 +919,12 @@ export default function Home() {
 
           {/* Theme Toggle */}
           <div className="flex flex-col items-center gap-2 mt-4">
-            <span className="text-[9px] font-mono tracking-widest uppercase text-white/30">Tema</span>
             <button
               onClick={() => setThemePreference(prev => prev === 'system' ? 'light' : prev === 'light' ? 'dark' : 'system')}
               className="inline-flex items-center gap-1.5 text-[10px] font-mono tracking-wider uppercase text-white/40 hover:text-white/70 transition-colors bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full border border-white/10 cursor-pointer"
               title={`Tema: ${themePreference === 'system' ? 'Sistema' : themePreference === 'light' ? 'Claro' : 'Escuro'}`}
             >
+              <span className="font-mono tracking-widest text-white/30 mr-0.5">Tema</span>
               {themePreference === 'system' ? (
                 <Monitor size={12} />
               ) : themePreference === 'light' ? (
@@ -943,8 +955,8 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             className={`fixed bottom-4 right-4 z-50 text-xs font-bold px-4 py-3 rounded-xl shadow-lg border flex items-center gap-1.5 ${toast.type === 'success'
-                ? 'bg-emerald-950/80 text-emerald-250 border-emerald-500/30 backdrop-blur-md'
-                : 'bg-red-950/80 text-red-250 border-red-500/30 backdrop-blur-md'
+              ? 'bg-emerald-950/80 text-emerald-250 border-emerald-500/30 backdrop-blur-md'
+              : 'bg-red-950/80 text-red-250 border-red-500/30 backdrop-blur-md'
               }`}
             id="toast-notification"
           >
