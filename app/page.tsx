@@ -185,7 +185,7 @@ export default function Home() {
     if (!config) return;
     const title = config.titulo || 'Cadeia de Oração | IVAS';
     const desc = config.sub_titulo || 'Confirme seu nome na lista de Oração.';
-    const image = 'https://ivas-esperanca.vercel.app/IMG/featured-image2.webp';
+    const image = 'https://esperanca.virtudes.net.br/IMG/featured-image2.webp';
 
     const setMeta = (name: string, content: string) => {
       let el = document.querySelector(`meta[name="${name}"], meta[property="${name}"]`) as HTMLMetaElement | null;
