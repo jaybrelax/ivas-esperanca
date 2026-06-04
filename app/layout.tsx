@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     siteName: 'Cadeia de Oração | IVAS',
     images: [
       {
-        url: 'https://esperanca.virtudes.net.br/IMG/featured-image2.webp',
+        url: 'https://esperanca.virtudes.net.br/IMG/featured-image2.png',
         width: 1200,
         height: 630,
         type: 'image/webp',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
     description: 'Confirme seu nome na lista de orações semanais.',
-    images: ['https://esperanca.virtudes.net.br/IMG/featured-image2.webp'],
+    images: ['https://esperanca.virtudes.net.br/IMG/featured-image2.png'],
   },
 };
 
