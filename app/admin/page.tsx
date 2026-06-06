@@ -79,6 +79,7 @@ export default function AdminDashboard() {
   const [adminEditingParticipantId, setAdminEditingParticipantId] = useState<string | null>(null);
   const [adminEditNomeValue, setAdminEditNomeValue] = useState('');
   const [adminEditSexoValue, setAdminEditSexoValue] = useState<'M' | 'F'>('M');
+  const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
 
   // Custom non-blocking confirmation dialog overlays
   const [deletingEvent, setDeletingEvent] = useState<{ id: string; numero: number } | null>(null);
@@ -404,7 +405,40 @@ export default function AdminDashboard() {
   // Non-blocking admin custom confirmation callback to remove a participant
   const confirmDeleteParticipant = async (pId: string) => {
     if (!selectedEvent) return;
-    const updatedNomes = selectedEvent.nomes.filter(p => p.id !== pId);
+
+    let isFixoDeleted = false;
+    let fixoParticipant = undefined;
+
+    // Deleta das configurações globais se for um nome fixo
+    if (config.nomes_fixo && config.nomes_fixo.some(p => p.id === pId)) {
+      fixoParticipant = config.nomes_fixo.find(p => p.id === pId);
+      const updatedFixo = config.nomes_fixo.filter(p => p.id !== pId);
+      const updatedConfig = { ...config, nomes_fixo: updatedFixo };
+      try {
+        await saveBrandingConfig(updatedConfig);
+        setConfig(updatedConfig);
+        isFixoDeleted = true;
+      } catch (err) {
+        console.error("Erro ao remover nome fixo", err);
+      }
+    }
+
+    let updatedNomes = [...selectedEvent.nomes];
+
+    if (isFixoDeleted) {
+      // Mantém no evento atual, mas remove a flag de fixo
+      const existingIdx = updatedNomes.findIndex(p => p.id === pId);
+      if (existingIdx >= 0) {
+        updatedNomes[existingIdx] = { ...updatedNomes[existingIdx], isFixo: false };
+      } else if (fixoParticipant) {
+        updatedNomes.push({ ...fixoParticipant, isFixo: false });
+        updatedNomes.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      }
+    } else {
+      // Se não era fixo, apenas remove da lista do evento
+      updatedNomes = updatedNomes.filter(p => p.id !== pId);
+    }
+
     const updatedEv = {
       ...selectedEvent,
       nomes: updatedNomes
@@ -413,7 +447,7 @@ export default function AdminDashboard() {
     try {
       const saved = await saveEvento(updatedEv);
       setEvents(events.map(ev => ev.id === saved.id ? saved : ev));
-      showToast("Nome removido com sucesso.");
+      showToast(isFixoDeleted ? "Nome removido dos fixos, mas mantido neste evento." : "Nome removido com sucesso.");
     } catch (err: any) {
       showToast(`Erro ao deletar participante: ${err.message || err}`, "error");
     }
@@ -597,7 +631,7 @@ export default function AdminDashboard() {
                                     #{ev.numero}
                                   </span>
                                   <span className="text-[10px] font-bold text-white/70 leading-tight mt-0 lg:mt-0">
-                                    {new Date(ev.data + 'T00:00:00').toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}
+                                    {new Date(ev.data + 'T00:00:00').toLocaleDateString('pt-BR', { month: '2-digit', day: '2-digit', year: '2-digit' })}
                                   </span>
                                 </div>
                               );
@@ -635,7 +669,7 @@ export default function AdminDashboard() {
 
                           <div className="bg-indigo-500/10 px-3 md:px-4 py-2 rounded-xl text-center border border-indigo-500/20 min-w-[64px]">
                             <span className="block text-base font-black text-white font-mono leading-none">{selectedEvent.nomes.length + (config.nomes_fixo?.filter(fixo => !selectedEvent.nomes.some(n => n.id === fixo.id)).length || 0)}</span>
-                            <span className="text-[10px] md:text-xs uppercase font-bold text-indigo-300/80 tracking-wide mt-1 block">Cadastros</span>
+                            <span className="text-[10px] md:text-xs uppercase font-bold text-indigo-300/80 tracking-wide mt-1 block">Nomes</span>
                           </div>
                         </div>
 
@@ -735,10 +769,15 @@ export default function AdminDashboard() {
                             return filteredNomes.length > 0 ? (
                               filteredNomes.map((p, idx) => {
                                 const isEditing = adminEditingParticipantId === p.id;
+                                const isSelected = selectedRowId === p.id;
                                 return (
-                                  <div key={p.id} className="p-2 flex justify-between items-center text-xs hover:bg-white/5 transition-colors">
+                                  <div
+                                    key={p.id}
+                                    onClick={() => !isEditing && setSelectedRowId(isSelected ? null : p.id)}
+                                    className={`relative p-2 flex justify-between items-center text-xs hover:bg-white/5 transition-all cursor-pointer overflow-hidden ${isSelected ? 'py-4 bg-white/5' : ''}`}
+                                  >
                                     {isEditing ? (
-                                      <div className="flex flex-wrap items-center gap-2 flex-grow">
+                                      <div className="flex flex-wrap items-center gap-2 flex-grow" onClick={(e) => e.stopPropagation()}>
                                         <input
                                           type="text"
                                           value={adminEditNomeValue}
@@ -784,20 +823,20 @@ export default function AdminDashboard() {
 
                                         </div>
 
-                                        <div className="flex items-center gap-2.5 shrink-0">
+                                        <div className={`absolute right-0 top-0 bottom-0 flex items-stretch transition-transform duration-300 ${isSelected ? 'translate-x-0' : 'translate-x-full'}`}>
                                           <button
-                                            onClick={() => startEditingParticipant(p)}
-                                            className="p-1 opacity-40 hover:opacity-100 text-white/60 hover:text-white/90 transition-all duration-200 cursor-pointer"
+                                            onClick={(e) => { e.stopPropagation(); startEditingParticipant(p); }}
+                                            className="px-4 flex items-center justify-center transition-all cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white"
                                             title="Editar nome ou sexo"
                                           >
-                                            <Edit size={12} />
+                                            <Edit size={14} />
                                           </button>
                                           <button
-                                            onClick={() => setDeletingParticipant({ id: p.id, nome: p.nome })}
-                                            className="p-1 opacity-40 hover:opacity-100 text-white/60 hover:text-red-400 transition-all duration-200 cursor-pointer"
+                                            onClick={(e) => { e.stopPropagation(); setDeletingParticipant({ id: p.id, nome: p.nome }); }}
+                                            className="px-4 flex items-center justify-center transition-all cursor-pointer bg-red-600 hover:bg-red-500 text-white"
                                             title="Deletar participante"
                                           >
-                                            <Trash2 size={12} />
+                                            <Trash2 size={14} />
                                           </button>
                                         </div>
                                       </>
@@ -818,8 +857,7 @@ export default function AdminDashboard() {
                             onClick={() => setDeletingEvent({ id: selectedEvent.id, numero: selectedEvent.numero })}
                             className="text-sm font-bold text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5 px-1 cursor-pointer"
                           >
-                            <Trash2 size={12} />
-                            Excluir esta lista
+                            <Trash2 size={15} />
                           </button>
 
                           <a
@@ -1019,7 +1057,7 @@ export default function AdminDashboard() {
 
       {/* Admin footer bar */}
       <footer className="bg-white/5 backdrop-blur-md border-t border-white/10 py-4 text-center text-sm text-indigo-200/50 font-medium">
-        <p>Painel de Controle Administrativo Integrado • Gestor de Listas de Convidados</p>
+        <p>Painel de Controle - Cadeia de Oração IVAS</p>
       </footer>
 
       {/* Admin Toast Alert Indicator */}

@@ -41,7 +41,19 @@ import {
 /** Lê o parâmetro ?evento=N da URL diretamente (sem useSearchParams, que causa 500 no standalone) */
 function getEventoParam(): string | null {
   if (typeof window === 'undefined') return null;
-  return new URLSearchParams(window.location.search).get('evento');
+  
+  const queryParam = new URLSearchParams(window.location.search).get('evento');
+  if (queryParam) return queryParam;
+  
+  const pathParts = window.location.pathname.split('/').filter(Boolean);
+  if (pathParts.length > 0) {
+    const slug = pathParts[pathParts.length - 1];
+    if (/^\d+$/.test(slug)) {
+      return slug;
+    }
+  }
+  
+  return null;
 }
 
 export default function Home() {
@@ -99,6 +111,7 @@ export default function Home() {
   const [isInputFocused, setIsInputFocused] = useState(false);
   // Tolerância de 1 min após o countdown zerar
   const [inputExpired, setInputExpired] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const formCardRef = useRef<HTMLDivElement>(null);
 
@@ -225,6 +238,9 @@ export default function Home() {
         const elapsed = nowTime - targetTime;
         if (elapsed >= 60000) {
           setInputExpired(true);
+        }
+        if (elapsed >= 20 * 60000) {
+          setIsFinished(true);
           clearInterval(timer);
         }
       } else {
@@ -527,8 +543,8 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-indigo-600/30 border border-indigo-500/30 backdrop-blur-md text-white p-4 md:p-5 rounded-2xl shadow-md text-center mx-auto"
               >
-                <p className="font-bold text-base md:text-lg">{inputExpired ? '📢 A oração já começou!' : '🚀 A oração vai começar!'}</p>
-                <p className="text-[10px] md:text-xs text-indigo-200 mt-1">{inputExpired ? 'A lista de inscrição foi encerrada.' : 'A lista permanece aberta para correções de última hora.'}</p>
+                <p className="font-bold text-base md:text-lg">{isFinished ? '📢 A oração já encerrou!' : (inputExpired ? '📢 A oração já começou!' : '🚀 A oração vai começar!')}</p>
+                <p className="text-[10px] md:text-xs text-indigo-200 mt-1">{isFinished ? 'A lista de inscrição foi encerrada. Volte na próxima lista!' : (inputExpired ? 'A lista de inscrição foi encerrada.' : 'A lista permanece aberta para correções de última hora.')}</p>
               </motion.div>
             ) : (
               <div className="flex mx-auto text-center bg-gradient-to-br from-[#0f1422] via-[#121829] to-[#0d111e] border border-indigo-500/40 rounded-2xl overflow-hidden shadow-lg shadow-indigo-500/30 animate-card-glow relative" id="countdown-grid">
@@ -561,11 +577,7 @@ export default function Home() {
 
         {/* Quick Add Saved names + Registration Card Form unificados */}
         {activeEvent ? (
-          inputExpired ? (
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-2xl mx-auto mb-8 md:mb-12 text-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <p className="text-white/60 font-medium text-sm md:text-base">📢 A lista de inscrição foi encerrada. Volte na próxima lista!</p>
-            </div>
-          ) : (
+          !inputExpired && (
             <div ref={formCardRef} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-2xl mx-auto mb-8 md:mb-12 flex flex-col gap-4 md:gap-5 animate-fade-in-up" id="registration-form-card" style={{ animationDelay: '0.2s' }}>
 
               {/* Cabeçalho e pré-salvos apenas se houver */}

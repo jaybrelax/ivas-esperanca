@@ -422,6 +422,7 @@ export async function saveEvento(evento: Evento): Promise<Evento> {
       const { data, error } = await sb
         .from('eventos')
         .insert([{
+          numero: evento.numero,
           data: evento.data,
           hora_inicio: evento.hora_inicio,
           nomes: evento.nomes
