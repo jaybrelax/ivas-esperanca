@@ -17,7 +17,8 @@ import {
   Clock,
   AlertTriangle,
   Sun,
-  Moon
+  Moon,
+  Send
 } from 'lucide-react';
 import {
   Evento,
@@ -84,6 +85,8 @@ export default function AdminDashboard() {
   // Custom non-blocking confirmation dialog overlays
   const [deletingEvent, setDeletingEvent] = useState<{ id: string; numero: number } | null>(null);
   const [deletingParticipant, setDeletingParticipant] = useState<{ id: string; nome: string } | null>(null);
+  const [showWebhookModal, setShowWebhookModal] = useState(false);
+  const [sendingWebhook, setSendingWebhook] = useState(false);
 
   // Toast notifications
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
@@ -852,7 +855,20 @@ export default function AdminDashboard() {
                           })()}
                         </div>
 
-                        <div className="flex justify-between items-center mt-20">
+                        {/* Botão Enviar Lista */}
+                        {config.copyright && (
+                          <div className="flex justify-center mt-6">
+                            <button
+                              onClick={() => setShowWebhookModal(true)}
+                              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600/80 hover:bg-indigo-600 border border-indigo-500/40 text-white text-sm font-bold rounded-2xl transition-all shadow-lg cursor-pointer"
+                            >
+                              <Send size={15} />
+                              Enviar lista de nomes no Grupo
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-center mt-6">
                           <button
                             onClick={() => setDeletingEvent({ id: selectedEvent.id, numero: selectedEvent.numero })}
                             className="text-sm font-bold text-red-400/60 hover:text-red-400 transition-colors flex items-center gap-1.5 px-1 cursor-pointer"
@@ -937,101 +953,104 @@ export default function AdminDashboard() {
                       />
                     </div>
 
-                    {/* Copyright footerbar text */}
+                    {/* Webhook Lista */}
                     <div>
-                      <label htmlFor="copyright-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">TEXTO DE COPYRIGHT (RODAPÉ)</label>
+                      <label htmlFor="copyright-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">Webhook Lista</label>
                       <input
                         id="copyright-field"
-                        type="text"
-                        required
+                        type="url"
                         value={editCopyright}
                         onChange={(e) => setEditCopyright(e.target.value)}
-                        placeholder="Ex: © 2026 Todos os direitos reservados. Minha Marca."
+                        placeholder="Ex: https://webhook.site/seu-id"
                         className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium"
                       />
                     </div>
 
                     <div className="border-t border-white/10 pt-4"></div>
 
-                    {/* Logo Upload */}
+                    {/* Aparência da Página: Logo and Banner Upload */}
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
-                      <label className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">Logo da Sua Página</label>
-                      <div
-                        className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl p-3 bg-black/20 hover:border-indigo-500/50 transition-colors relative cursor-pointer group h-32"
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const file = e.dataTransfer.files?.[0];
-                          if (file) handleImageUpload(file, setEditLogoUrl);
-                        }}
-                      >
-                        <input
-                          type="file"
-                          accept="image/*"
-                          id="logo-upload-input"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleImageUpload(file, setEditLogoUrl);
-                          }}
-                        />
-                        <label htmlFor="logo-upload-input" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-center p-2">
-                          {editLogoUrl ? (
-                            <div className="relative w-20 h-20 group">
-                              <img src={editLogoUrl} alt="Logo Preview" className="w-20 h-20 object-cover rounded-full border border-indigo-500/50 bg-slate-950" />
-                              <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                <Edit size={16} className="text-white" />
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center justify-center text-white/55">
-                              <Plus size={20} className="mb-1 text-indigo-400 group-hover:scale-110 transition-transform" />
-                              <span className="text-sm font-bold">Upload Logo</span>
-                              <span className="text-sm text-white/45">Arraste ou clique</span>
-                            </div>
-                          )}
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Banner Upload */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
-                      <label className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">Banner de Fundo da Página</label>
-                      <div
-                        className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl p-3 bg-black/20 hover:border-indigo-500/50 transition-colors relative cursor-pointer group h-32"
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const file = e.dataTransfer.files?.[0];
-                          if (file) handleImageUpload(file, setEditBannerUrl);
-                        }}
-                      >
-                        <input
-                          type="file"
-                          accept="image/*"
-                          id="banner-upload-input"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
+                      <label className="block text-indigo-300 mb-2 uppercase tracking-widest text-xs">Aparência da Página (Banner e Logo)</label>
+                      <div className="relative w-full h-28 md:h-48 rounded-xl border-2 border-dashed border-white/20 bg-black/20 overflow-visible group/main mb-12">
+                        
+                        {/* Banner Upload Area (Background) */}
+                        <div 
+                          className="absolute inset-0 z-0 flex flex-col items-center justify-center hover:bg-white/5 transition-colors overflow-hidden rounded-xl"
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const file = e.dataTransfer.files?.[0];
                             if (file) handleImageUpload(file, setEditBannerUrl);
                           }}
-                        />
-                        <label htmlFor="banner-upload-input" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-center p-2">
-                          {editBannerUrl ? (
-                            <div className="relative w-full h-full group p-1">
-                              <img src={editBannerUrl} alt="Banner Preview" className="w-full h-full object-cover rounded-lg border border-indigo-500/30 bg-slate-950" />
-                              <div className="absolute inset-0 bg-black/60 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                <Edit size={16} className="text-white" />
+                        >
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="banner-upload-input"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(file, setEditBannerUrl);
+                            }}
+                          />
+                          <label htmlFor="banner-upload-input" className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-center w-full h-full">
+                            {editBannerUrl ? (
+                              <div className="relative w-full h-full group/banner">
+                                <img src={editBannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/banner:opacity-100 flex items-start justify-end p-3 transition-opacity">
+                                  <div className="bg-black/50 p-2 rounded-lg backdrop-blur-md text-white flex items-center gap-2">
+                                    <Edit size={14} /> <span className="text-xs font-bold uppercase tracking-widest">Editar Banner</span>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center justify-center text-white/55">
-                              <Plus size={20} className="mb-1 text-indigo-400 group-hover:scale-110 transition-transform" />
-                              <span className="text-sm font-bold">Upload Banner</span>
-                              <span className="text-sm text-white/45">Arraste ou clique</span>
-                            </div>
-                          )}
-                        </label>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center text-white/55 h-full w-full">
+                                <Plus size={20} className="mb-1 text-indigo-400" />
+                                <span className="text-sm font-bold">Upload Banner</span>
+                                <span className="text-sm text-white/45">Fundo da página</span>
+                              </div>
+                            )}
+                          </label>
+                        </div>
+
+                        {/* Logo Upload Area (Overlay Foreground) */}
+                        <div 
+                          className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10"
+                          onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const file = e.dataTransfer.files?.[0];
+                            if (file) handleImageUpload(file, setEditLogoUrl);
+                          }}
+                        >
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="logo-upload-input"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(file, setEditLogoUrl);
+                            }}
+                          />
+                          <label htmlFor="logo-upload-input" className="block relative w-24 h-24 md:w-28 md:h-28 cursor-pointer group/logo shadow-2xl rounded-full">
+                            {editLogoUrl ? (
+                              <>
+                                <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-xl"></div>
+                                <img src={editLogoUrl} alt="Logo Preview" className="w-full h-full object-cover rounded-full border-4 border-[#0b1220] bg-slate-950 relative z-10" />
+                                <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover/logo:opacity-100 flex items-center justify-center transition-opacity z-20">
+                                  <Edit size={18} className="text-white" />
+                                </div>
+                              </>
+                            ) : (
+                              <div className="w-full h-full rounded-full border-4 border-dashed border-indigo-500/40 text-indigo-300 flex flex-col items-center justify-center shadow-2xl relative z-10">
+                                <Plus size={20} className="mb-1 text-indigo-400 group-hover/logo:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold uppercase">Logo</span>
+                              </div>
+                            )}
+                          </label>
+                        </div>
                       </div>
                     </div>
 
@@ -1144,7 +1163,7 @@ export default function AdminDashboard() {
               <div className="mx-auto w-11 h-11 md:w-12 md:h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                 <AlertTriangle size={22} />
               </div>
-              <h3 className="text-base font-extrabold text-white mb-2 uppercase tracking-wider">Banir / Remover?</h3>
+              <h3 className="text-base font-extrabold text-white mb-2 uppercase tracking-wider"> Remover nome?</h3>
               <p className="text-sm text-indigo-200/70 mb-5 md:mb-6 leading-relaxed">
                 Deseja mesmo remover &quot;<strong className="text-white font-bold">{deletingParticipant.nome}</strong>&quot; da lista de presença?
               </p>
@@ -1166,6 +1185,100 @@ export default function AdminDashboard() {
                   className="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-bold duration-100 shadow-md cursor-pointer"
                 >
                   Confirmar Remoção
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Modal: Enviar Lista via Webhook */}
+        {showWebhookModal && selectedEvent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#0b1220]/95 border border-white/10 rounded-3xl p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center"
+            >
+              <div className="mx-auto w-11 h-11 md:w-12 md:h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4">
+                <Send size={20} />
+              </div>
+              <h3 className="text-base font-extrabold text-white mb-2 uppercase tracking-wider">Enviar Lista no Grupo?</h3>
+              <p className="text-sm text-indigo-200/70 mb-1 leading-relaxed">
+                Oração <strong className="text-white">#{selectedEvent.numero}</strong> — {new Date(selectedEvent.data + 'T00:00:00').toLocaleDateString('pt-BR')}
+              </p>
+              <p className="text-xs text-indigo-200/50 mb-5">
+                {(() => {
+                  const all = [
+                    ...(config.nomes_fixo?.filter(f => !selectedEvent.nomes.some(n => n.id === f.id)) || []),
+                    ...selectedEvent.nomes
+                  ];
+                  const m = all.filter(p => p.sexo === 'M').length;
+                  const f = all.filter(p => p.sexo === 'F').length;
+                  return `${all.length} nomes • ${m} irmãos • ${f} irmãs`;
+                })()}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
+                <button
+                  type="button"
+                  onClick={() => setShowWebhookModal(false)}
+                  disabled={sendingWebhook}
+                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-xl text-sm font-semibold hover:bg-white/10 duration-100 cursor-pointer disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={sendingWebhook}
+                  onClick={async () => {
+                    if (!config.copyright) return;
+                    setSendingWebhook(true);
+                    const all = [
+                      ...(config.nomes_fixo?.filter(f => !selectedEvent.nomes.some(n => n.id === f.id)) || []).map(p => ({ ...p, isFixo: true })),
+                      ...selectedEvent.nomes
+                    ];
+                    const masculino = all.filter(p => p.sexo === 'M').map(p => p.nome);
+                    const feminino = all.filter(p => p.sexo === 'F').map(p => p.nome);
+                    const payload = {
+                      evento: {
+                        numero: selectedEvent.numero,
+                        data: new Date(selectedEvent.data + 'T00:00:00').toLocaleDateString('pt-BR'),
+                        hora_inicio: selectedEvent.hora_inicio,
+                        total: all.length,
+                      },
+                      masculino,
+                      feminino,
+                    };
+                    try {
+                      const res = await fetch('/api/webhook-proxy', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ webhookUrl: config.copyright, payload }),
+                      });
+                      if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.error || `HTTP ${res.status}`);
+                      }
+                      showToast('Lista enviada com sucesso! ✅');
+                    } catch (err: any) {
+                      showToast(`Falha ao enviar: ${err.message || 'erro desconhecido'}`, 'error');
+                    } finally {
+                      setSendingWebhook(false);
+                      setShowWebhookModal(false);
+                    }
+                  }}
+                  className="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold duration-100 shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {sendingWebhook ? (
+                    <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block"></span> Enviando...</>
+                  ) : (
+                    <><Send size={14} /> Confirmar Envio</>
+                  )}
                 </button>
               </div>
             </motion.div>

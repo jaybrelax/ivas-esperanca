@@ -948,7 +948,7 @@ export default function Home() {
 
           {/* Footer Bar Copyright */}
           <div className="w-full border-t border-white/5 pt-5 flex flex-col sm:flex-row justify-between items-center text-[11px] text-white/55 font-medium">
-            <p id="copyright-text">{config?.copyright || DEFAULT_CONFIG.copyright}</p>
+            <p id="copyright-text">© {new Date().getFullYear()} Todos os direitos reservados. IVAS.</p>
             <p className="font-mono tracking-widest text-[9px] uppercase mt-1 sm:mt-0">
               POWERED BY Jay Brelaz Dev
             </p>
