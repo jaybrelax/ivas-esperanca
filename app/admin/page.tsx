@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   Sun,
   Moon,
-  Send
+  Send,
+  Download
 } from 'lucide-react';
 import {
   Evento,
@@ -43,6 +44,35 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'events' | 'branding'>('events');
   const [isDbConnected, setIsDbConnected] = useState(false);
 
+  // PWA Install state
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', () => setIsInstalled(true));
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsInstalled(true);
+    }
+    setDeferredPrompt(null);
+  };
+
   // Loaded database states
   const [events, setEvents] = useState<Evento[]>([]);
   const [config, setConfig] = useState<ConfigMarca>(DEFAULT_CONFIG);
@@ -65,6 +95,7 @@ export default function AdminDashboard() {
   const [editBannerUrl, setEditBannerUrl] = useState('');
   const [editCopyright, setEditCopyright] = useState('');
   const [editLightMode, setEditLightMode] = useState(false);
+  const [editNomesOcultos, setEditNomesOcultos] = useState('');
 
   // Password / lock passcode state
   const [passcode, setPasscode] = useState('');
@@ -130,6 +161,7 @@ export default function AdminDashboard() {
       setEditBannerUrl(brandCnf.banner_url || '');
       setEditCopyright(brandCnf.copyright);
       setEditLightMode(brandCnf.light_mode || false);
+      setEditNomesOcultos(brandCnf.nomes_ocultos || '');
 
       const allEv = await listAllEventos();
       setEvents(allEv);
@@ -154,15 +186,21 @@ export default function AdminDashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Real-time subscription for live updates
+  // Real-time subscription for live updates (eventos + marca_config)
   useEffect(() => {
     const sb = getSupabaseClient();
     if (!sb) return;
 
     const channel = sb
-      .channel('eventos-changes')
+      .channel('admin-realtime')
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'eventos' },
+        () => {
+          loadStatsAndData();
+        }
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'marca_config' },
         () => {
           loadStatsAndData();
         }
@@ -182,13 +220,15 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       const updatedConfig: ConfigMarca = {
+        ...config,
         titulo: editTitulo.trim() || DEFAULT_CONFIG.titulo,
         sub_titulo: editSubTitulo.trim() || DEFAULT_CONFIG.sub_titulo,
         titulo_2: editTitulo2.trim() || DEFAULT_CONFIG.titulo_2,
         logo_url: editLogoUrl.trim() || DEFAULT_CONFIG.logo_url,
         banner_url: editBannerUrl.trim() || DEFAULT_CONFIG.banner_url,
         copyright: editCopyright.trim() || DEFAULT_CONFIG.copyright,
-        light_mode: editLightMode
+        light_mode: editLightMode,
+        nomes_ocultos: editNomesOcultos.trim()
       };
 
       const success = await saveBrandingConfig(updatedConfig);
@@ -357,18 +397,39 @@ export default function AdminDashboard() {
     const trimmed = adminEditNomeValue.trim();
     if (!trimmed) return;
 
-    const dup = selectedEvent.nomes.some(p => p.id !== pId && p.nome.toLowerCase() === trimmed.toLowerCase());
+    // Verifica duplicidade na lista completa (evento + fixos)
+    const allNomesCheck = [
+      ...selectedEvent.nomes,
+      ...(config.nomes_fixo?.filter(fixo =>
+        !selectedEvent.nomes.some(n => n.id === fixo.id)
+      ) || [])
+    ];
+    const dup = allNomesCheck.some(p => p.id !== pId && p.nome.toLowerCase() === trimmed.toLowerCase());
     if (dup) {
       showToast("Outro participante já possui esse nome!", "error");
       return;
     }
 
-    const updatedNomes = selectedEvent.nomes.map(p => {
-      if (p.id === pId) {
-        return { ...p, nome: trimmed, sexo: adminEditSexoValue };
-      }
-      return p;
-    }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    // Determina se o participante é fixo (pode estar só em config.nomes_fixo)
+    const pInEvent = selectedEvent.nomes.find(p => p.id === pId);
+    const pInFixo = config.nomes_fixo?.find(fp => fp.id === pId);
+    const pToEdit = pInEvent || pInFixo;
+
+    if (!pToEdit) return;
+
+    // Atualiza no evento: se já está na lista do evento, atualiza; se for fixo ausente, adiciona
+    let updatedNomes: typeof selectedEvent.nomes;
+    if (pInEvent) {
+      updatedNomes = selectedEvent.nomes.map(p =>
+        p.id === pId ? { ...p, nome: trimmed, sexo: adminEditSexoValue } : p
+      ).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    } else {
+      // Fixo que não estava na lista do evento, adiciona com edição
+      updatedNomes = [
+        ...selectedEvent.nomes,
+        { ...pToEdit, nome: trimmed, sexo: adminEditSexoValue }
+      ].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    }
 
     const updatedEv = {
       ...selectedEvent,
@@ -379,23 +440,18 @@ export default function AdminDashboard() {
       const saved = await saveEvento(updatedEv);
       setEvents(events.map(ev => ev.id === saved.id ? saved : ev));
 
-      const pToEdit = selectedEvent.nomes.find(p => p.id === pId);
-      if (pToEdit && pToEdit.isFixo) {
-        // Encontrar e atualizar também na lista global
-        const oldNomeLower = pToEdit.nome.toLowerCase();
-        const globalDup = config.nomes_fixo?.find(fp => fp.nome.toLowerCase() === oldNomeLower || fp.id === pId);
-        if (globalDup) {
-          const updatedConfig = {
-            ...config,
-            nomes_fixo: config.nomes_fixo?.map(fp =>
-              (fp.nome.toLowerCase() === oldNomeLower || fp.id === pId)
-                ? { ...fp, nome: trimmed, sexo: adminEditSexoValue }
-                : fp
-            )
-          };
-          await saveBrandingConfig(updatedConfig);
-          setConfig(updatedConfig);
-        }
+      // Se for fixo, atualiza também em marca_config
+      if (pToEdit.isFixo) {
+        const updatedConfig = {
+          ...config,
+          nomes_fixo: config.nomes_fixo?.map(fp =>
+            fp.id === pId
+              ? { ...fp, nome: trimmed, sexo: adminEditSexoValue }
+              : fp
+          )
+        };
+        await saveBrandingConfig(updatedConfig);
+        setConfig(updatedConfig);
       }
 
       setAdminEditingParticipantId(null);
@@ -496,11 +552,12 @@ export default function AdminDashboard() {
         ) : (
           <div>
             {/* Dashboard Tabs Selection - scrollável horizontalmente no mobile */}
-            <div className="flex border-b border-white/10 mb-5 md:mb-8 overflow-x-auto no-scrollbar" id="admin-tabs">
-              {[
-                { id: 'events', label: 'Listas de Orações', labelFull: 'Gerenciar Listas & Orações', icon: Calendar },
-                { id: 'branding', label: 'Config', labelFull: 'Configurações', icon: Layout }
-              ].map((tab) => {
+            <div className="flex items-center justify-between border-b border-white/10 mb-5 md:mb-8" id="admin-tabs">
+              <div className="flex overflow-x-auto no-scrollbar">
+                {[
+                  { id: 'events', label: 'Listas de Orações', labelFull: 'Gerenciar Listas & Orações', icon: Calendar },
+                  { id: 'branding', label: 'Config', labelFull: 'Configurações', icon: Layout }
+                ].map((tab) => {
                 const Icon = tab.icon;
                 const isSelected = activeTab === tab.id;
                 return (
@@ -518,6 +575,18 @@ export default function AdminDashboard() {
                   </button>
                 );
               })}
+              </div>
+
+              {/* Install PWA Icon */}
+              {deferredPrompt && !isInstalled && (
+                <button
+                  onClick={handleInstallClick}
+                  className="flex items-center justify-center p-2 text-indigo-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer ml-4 shrink-0"
+                  title="Instalar App"
+                >
+                  <Download size={18} />
+                </button>
+              )}
             </div>
 
             {/* Content Switcher */}
@@ -624,16 +693,16 @@ export default function AdminDashboard() {
                               return (
                                 <div
                                   key={ev.id}
-                                  className={`snap-start shrink-0 w-[calc(25%-4.5px)] lg:w-full min-w-[75px] lg:min-w-0 aspect-[4/3] lg:aspect-auto rounded-lg border transition-all cursor-pointer flex flex-col lg:flex-row items-center justify-center lg:justify-between text-center lg:text-left p-1 lg:px-4 lg:py-3 relative overflow-hidden mt-2 lg:mt-0 first:ml-5 lg:first:ml-0 ${isSelected
+                                  className={`snap-start shrink-0 w-[calc(20%-4px)] lg:w-full min-w-[62px] lg:min-w-0 aspect-[5/4] lg:aspect-auto rounded-lg border transition-all cursor-pointer flex flex-col lg:flex-row items-center justify-center lg:justify-between text-center lg:text-left p-0.5 lg:px-4 lg:py-3 relative overflow-hidden mt-2 lg:mt-0 first:ml-3 lg:first:ml-0 ${isSelected
                                     ? 'border-violet-400 bg-violet-500/25 ring-2 ring-violet-400/50 scale-[1.02] lg:scale-[1.01]'
                                     : 'border-white/10 bg-white/5 hover:bg-white/10'
                                     }`}
                                   onClick={() => setSelectedEventId(ev.id)}
                                 >
-                                  <span className="font-mono text-lg lg:text-sm font-black text-white leading-none">
+                                  <span className="font-mono text-base lg:text-sm font-black text-white leading-none">
                                     #{ev.numero}
                                   </span>
-                                  <span className="text-[10px] font-bold text-white/70 leading-tight mt-0 lg:mt-0">
+                                  <span className="text-[9px] font-bold text-white/70 leading-tight mt-0 lg:mt-0">
                                     {new Date(ev.data + 'T00:00:00').toLocaleDateString('pt-BR', { month: '2-digit', day: '2-digit', year: '2-digit' })}
                                   </span>
                                 </div>
@@ -762,6 +831,9 @@ export default function AdminDashboard() {
                                 !selectedEvent.nomes.some(n => n.id === fixo.id)
                               ) || [])
                             ];
+                            const nomesOcultosArr = config.nomes_ocultos
+                              ? config.nomes_ocultos.split('\n').map(n => n.trim().toLowerCase()).filter(Boolean)
+                              : [];
                             const filteredNomes = allNomes.filter(p => {
                               if (filterType === 'fixo') return p.isFixo;
                               if (filterType === 'M') return p.sexo === 'M';
@@ -773,6 +845,7 @@ export default function AdminDashboard() {
                               filteredNomes.map((p, idx) => {
                                 const isEditing = adminEditingParticipantId === p.id;
                                 const isSelected = selectedRowId === p.id;
+                                const isOculto = nomesOcultosArr.includes(p.nome.trim().toLowerCase());
                                 return (
                                   <div
                                     key={p.id}
@@ -818,6 +891,11 @@ export default function AdminDashboard() {
                                           <span className="font-semibold text-white uppercase text-xs">
                                             {p.nome}
                                           </span>
+                                          {isOculto && (
+                                            <span className="text-[8px] uppercase tracking-wider bg-amber-500/30 text-amber-200 px-1 py-0.5 rounded font-bold border border-amber-500/30 shrink-0 ml-1">
+                                              Oculto
+                                            </span>
+                                          )}
                                           {p.isFixo && (
                                             <span className="text-[8px] uppercase tracking-wider bg-indigo-500/30 text-indigo-200 px-1 py-0.5 rounded font-bold border border-indigo-500/30 shrink-0 ml-1">
                                               Fixo
@@ -860,7 +938,7 @@ export default function AdminDashboard() {
                           <div className="flex justify-center mt-6">
                             <button
                               onClick={() => setShowWebhookModal(true)}
-                              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600/80 hover:bg-indigo-600 border border-indigo-500/40 text-white text-sm font-bold rounded-2xl transition-all shadow-lg cursor-pointer"
+                              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600/80 hover:bg-indigo-600 border border-indigo-500/40 text-white text-sm font-bold rounded-lg transition-all shadow-lg cursor-pointer"
                             >
                               <Send size={15} />
                               Enviar lista de nomes no Grupo
@@ -964,6 +1042,22 @@ export default function AdminDashboard() {
                         placeholder="Ex: https://webhook.site/seu-id"
                         className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium"
                       />
+                    </div>
+
+                    <div className="border-t border-white/10 pt-4"></div>
+
+                    {/* Nomes Ocultos */}
+                    <div>
+                      <label htmlFor="nomes-ocultos-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">Nomes Ocultos (Webhook)</label>
+                      <textarea
+                        id="nomes-ocultos-field"
+                        value={editNomesOcultos}
+                        onChange={(e) => setEditNomesOcultos(e.target.value)}
+                        placeholder="Insira um nome por linha que não deve ser enviado no payload do Webhook&#10;Ex:&#10;João Silva&#10;Maria Santos"
+                        rows={4}
+                        className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium resize-y"
+                      />
+                      <p className="text-[10px] text-indigo-200/50 mt-1 font-normal">Esses nomes continuarão aparecendo na lista pública e no admin com a tag <span className="text-amber-300 font-semibold">[oculto]</span>, mas serão removidos do total e da lista de nomes no payload enviado ao Webhook.</p>
                     </div>
 
                     <div className="border-t border-white/10 pt-4"></div>
@@ -1218,9 +1312,13 @@ export default function AdminDashboard() {
                     ...(config.nomes_fixo?.filter(f => !selectedEvent.nomes.some(n => n.id === f.id)) || []),
                     ...selectedEvent.nomes
                   ];
-                  const m = all.filter(p => p.sexo === 'M').length;
-                  const f = all.filter(p => p.sexo === 'F').length;
-                  return `${all.length} nomes • ${m} irmãos • ${f} irmãs`;
+                  const nomesOcultosArr = config.nomes_ocultos
+                    ? config.nomes_ocultos.split('\n').map(n => n.trim().toLowerCase()).filter(Boolean)
+                    : [];
+                  const allFiltered = all.filter(p => !nomesOcultosArr.includes(p.nome.trim().toLowerCase()));
+                  const m = allFiltered.filter(p => p.sexo === 'M').length;
+                  const f = allFiltered.filter(p => p.sexo === 'F').length;
+                  return `${allFiltered.length} nomes • ${m} irmãos • ${f} irmãs`;
                 })()}
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
@@ -1242,14 +1340,18 @@ export default function AdminDashboard() {
                       ...(config.nomes_fixo?.filter(f => !selectedEvent.nomes.some(n => n.id === f.id)) || []).map(p => ({ ...p, isFixo: true })),
                       ...selectedEvent.nomes
                     ];
-                    const masculino = all.filter(p => p.sexo === 'M').map(p => p.nome);
-                    const feminino = all.filter(p => p.sexo === 'F').map(p => p.nome);
+                    const nomesOcultosArr = config.nomes_ocultos
+                      ? config.nomes_ocultos.split('\n').map(n => n.trim().toLowerCase()).filter(Boolean)
+                      : [];
+                    const allFiltered = all.filter(p => !nomesOcultosArr.includes(p.nome.trim().toLowerCase()));
+                    const masculino = allFiltered.filter(p => p.sexo === 'M').map(p => p.nome);
+                    const feminino = allFiltered.filter(p => p.sexo === 'F').map(p => p.nome);
                     const payload = {
                       evento: {
                         numero: selectedEvent.numero,
                         data: new Date(selectedEvent.data + 'T00:00:00').toLocaleDateString('pt-BR'),
                         hora_inicio: selectedEvent.hora_inicio,
-                        total: all.length,
+                        total: allFiltered.length,
                       },
                       masculino,
                       feminino,

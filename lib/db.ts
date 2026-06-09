@@ -28,6 +28,7 @@ export interface ConfigMarca {
   copyright: string;
   nomes_fixo?: Participant[];
   light_mode?: boolean;
+  nomes_ocultos?: string;
 }
 
 // Default values for brand configuration
@@ -39,7 +40,8 @@ export const DEFAULT_CONFIG: ConfigMarca = {
   banner_url: "https://tptwonotfxzevqswuhvg.supabase.co/storage/v1/object/public/img/branding/1780530541280-jbwqn3.webp", // Default beautiful banner placeholder
   copyright: "© 2026 Todos os direitos reservados. IVAS.",
   nomes_fixo: [],
-  light_mode: false
+  light_mode: false,
+  nomes_ocultos: ""
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -264,6 +266,7 @@ export async function fetchBrandingConfig(): Promise<ConfigMarca> {
               copyright: data.copyright || DEFAULT_CONFIG.copyright,
               nomes_fixo: (typeof data.nomes_fixo === 'string' ? JSON.parse(data.nomes_fixo) : data.nomes_fixo) || [],
               light_mode: data.light_mode || false,
+              nomes_ocultos: data.nomes_ocultos || "",
             };
           }
           return getLocalConfig();
@@ -304,6 +307,7 @@ export async function saveBrandingConfig(config: ConfigMarca): Promise<boolean> 
               copyright: config.copyright,
               nomes_fixo: config.nomes_fixo,
               light_mode: config.light_mode,
+              nomes_ocultos: config.nomes_ocultos,
               updated_at: new Date().toISOString()
             })
             .eq('id', 'default');
@@ -319,7 +323,8 @@ export async function saveBrandingConfig(config: ConfigMarca): Promise<boolean> 
               titulo_2: config.titulo_2,
               copyright: config.copyright,
               nomes_fixo: config.nomes_fixo || [],
-              light_mode: config.light_mode || false
+              light_mode: config.light_mode || false,
+              nomes_ocultos: config.nomes_ocultos || ""
             });
         }
         

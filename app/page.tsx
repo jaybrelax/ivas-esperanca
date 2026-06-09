@@ -775,6 +775,9 @@ export default function Home() {
                     if (typeof window !== 'undefined') {
                       devId = localStorage.getItem('gestor_eventos_device_id') || '';
                     }
+                    const nomesOcultosArr = config?.nomes_ocultos
+                      ? config.nomes_ocultos.split('\n').map(n => n.trim().toLowerCase()).filter(Boolean)
+                      : [];
                     return [...filteredParticipants].sort((a, b) => {
                       const aIsMine = a.device_id === devId;
                       const bIsMine = b.device_id === devId;
@@ -783,6 +786,7 @@ export default function Home() {
                       return a.nome.localeCompare(b.nome, 'pt-BR');
                     }).map((p, index) => {
                       const isMine = p.device_id === devId;
+                      const isOculto = nomesOcultosArr.includes(p.nome.trim().toLowerCase());
                       return (
                         <div key={p.id} className="group flex justify-between items-center py-2.5 px-3 md:py-3 md:px-4 hover:bg-white/5 rounded-lg duration-150 transition-colors">
                           <div className="flex items-center gap-2 pr-2 overflow-hidden">
@@ -793,6 +797,11 @@ export default function Home() {
                             <span className="text-sm font-semibold text-white truncate uppercase">
                               {p.nome}
                             </span>
+                            {isOculto && (
+                              <span className="text-[8px] uppercase tracking-wider bg-amber-500/30 text-amber-200 px-1 py-0.5 rounded font-bold border border-amber-500/30 shrink-0 ml-1">
+                                Oculto
+                              </span>
+                            )}
                           </div>
 
                           {isMine && (
