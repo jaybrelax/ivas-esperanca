@@ -122,6 +122,22 @@ export default function AdminDashboard() {
   // Toast notifications
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
+  // Session-based toggle for overriding "Nova Oração" button visibility
+  const [showCreateEventOverride, setShowCreateEventOverride] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('admin_show_create_override') === 'true';
+    }
+    return false;
+  });
+
+  const showCreateButton = (() => {
+    if (showCreateEventOverride) return true;
+    if (events.length === 0) return true;
+    const last = events[0];
+    const dt = new Date(last.data + 'T' + (last.hora_inicio || '20:00'));
+    return new Date() >= dt;
+  })();
+
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
@@ -196,6 +212,14 @@ export default function AdminDashboard() {
     }, 0);
     return () => clearTimeout(timer);
   }, []);
+
+  // Auto-close create event form when button is not allowed
+  useEffect(() => {
+    if (!showCreateButton) {
+      setShowCreateEventForm(false);
+      setIsEditingEvent(false);
+    }
+  }, [showCreateButton]);
 
   // Real-time subscription for live updates (eventos + marca_config)
   useEffect(() => {
@@ -612,19 +636,21 @@ export default function AdminDashboard() {
                   {/* Left panel: List of events */}
                   <div className="lg:col-span-4 space-y-3 md:space-y-4 animate-fade-in-up lg:sticky lg:top-5 lg:self-start">
                     <div className="pb-3">
-                      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg bg-white/10 shadow-lg px-5 py-3 mb-3">
+                      <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg bg-white/10 shadow-lg px-5 py-3 mb-3 ${!showCreateButton ? 'hidden lg:block' : ''}`}>
                         <div className="flex justify-between items-center">
                           <h4 className="text-sm font-bold uppercase tracking-widest text-indigo-300">Orações</h4>
-                          <button
-                            onClick={() => {
-                              setShowCreateEventForm(!showCreateEventForm);
-                              if (showCreateEventForm) setIsEditingEvent(false);
-                            }}
-                            className={`bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-1 px-3 rounded-lg border border-indigo-500/50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md ${showCreateEventForm ? 'bg-indigo-700' : ''}`}
-                          >
-                            {showCreateEventForm ? <Calendar size={12} /> : <Plus size={12} />}
-                            <span>{showCreateEventForm ? "Fechar" : "Nova Oração"}</span>
-                          </button>
+                          {showCreateButton && (
+                            <button
+                              onClick={() => {
+                                setShowCreateEventForm(!showCreateEventForm);
+                                if (showCreateEventForm) setIsEditingEvent(false);
+                              }}
+                              className={`bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-1 px-3 rounded-lg border border-indigo-500/50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md ${showCreateEventForm ? 'bg-indigo-700' : ''}`}
+                            >
+                              {showCreateEventForm ? <Calendar size={12} /> : <Plus size={12} />}
+                              <span>{showCreateEventForm ? "Fechar" : "Nova Oração"}</span>
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -1071,6 +1097,29 @@ export default function AdminDashboard() {
                         className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium resize-y"
                       />
                       <p className="text-[10px] text-indigo-200/50 mt-1 font-normal">Esses nomes continuarão aparecendo na lista pública e no admin com a tag <span className="text-amber-300 font-semibold">[oculto]</span>, mas serão removidos do total e da lista de nomes no payload enviado ao Webhook.</p>
+                    </div>
+
+                    <div className="border-t border-white/10 pt-4"></div>
+
+                    {/* Session toggle: Forçar exibição do botão Nova Oração */}
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-indigo-300 uppercase tracking-widest text-xs font-bold">Habilitar Nova Oração</label>
+                          <p className="text-[10px] text-indigo-200/50 mt-0.5 font-normal">Exibe o botão de criar nova oração mesmo se a data do último evento ainda não passou.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newVal = !showCreateEventOverride;
+                            setShowCreateEventOverride(newVal);
+                            sessionStorage.setItem('admin_show_create_override', String(newVal));
+                          }}
+                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer shrink-0 ${showCreateEventOverride ? 'bg-indigo-500' : 'bg-white/20'}`}
+                        >
+                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${showCreateEventOverride ? 'translate-x-5' : ''}`} />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="border-t border-white/10 pt-4"></div>

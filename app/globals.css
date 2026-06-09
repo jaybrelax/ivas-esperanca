@@ -522,3 +522,25 @@ button, label {
 #public-main-root.light-mode [id="main-header"] [class*="text-white/40"] {
   color: rgba(6, 95, 70, 0.25) !important;
 }
+
+/* ───── MODAL ───── */
+#public-main-root.light-mode [class*="bg-slate-950"] {
+  background: rgba(245, 244, 248, 0.85) !important;
+}
+#public-main-root.light-mode [class*="bg-[#0b1220]"] {
+  background: #ffffff !important;
+}
+
+/* ───── BOTÕES DE AÇÃO (EDITAR/EXCLUIR) ───── */
+#public-main-root.light-mode .text-red-400 {
+  color: #dc2626;
+}
+#public-main-root.light-mode [class*="hover:text-white"]:hover {
+  color: #ffffff !important;
+}
+#public-main-root.light-mode [class*="hover:bg-red-500"]:hover {
+  background: rgba(220, 38, 38, 0.7) !important;
+}
+#public-main-root.light-mode [class*="hover:bg-indigo-500"]:hover {
+  background: rgba(108, 92, 231, 0.15) !important;
+}

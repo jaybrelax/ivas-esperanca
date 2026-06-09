@@ -1016,7 +1016,7 @@ export default function Home() {
               <div className="mx-auto w-11 h-11 md:w-12 md:h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mb-4">
                 <AlertTriangle size={22} />
               </div>
-              <h3 className="text-sm md:text-base font-extrabold text-white mb-2 uppercase tracking-wider">Remover Presença?</h3>
+              <h3 className="text-sm md:text-base font-extrabold text-white mb-2 uppercase tracking-wider">Remover NOME?</h3>
               <p className="text-[10px] md:text-xs text-indigo-200/70 mb-5 leading-relaxed">
                 Deseja realmente remover seu nome (&quot;<strong className="text-white font-bold">{deletingParticipant.nome}</strong>&quot;) desta lista?
               </p>
@@ -1026,7 +1026,7 @@ export default function Home() {
                   onClick={() => setDeletingParticipant(null)}
                   className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-xl text-xs font-semibold hover:bg-white/10 duration-100 cursor-pointer"
                 >
-                  Manter Presença
+                  Manter NOME
                 </button>
                 <button
                   type="button"
