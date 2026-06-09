@@ -1,15 +1,17 @@
 {
-  "name": "Admin — Cadeia de Oração IVAS",
-  "short_name": "Admin IVAS",
+  "name": "Cadeia de Oração IVAS",
+  "short_name": "Esperança IVAS",
   "description": "Painel administrativo da Cadeia de Oração - IVAS Esperança",
   "start_url": "/admin",
   "scope": "/admin",
   "display": "standalone",
   "background_color": "#0b1220",
-  "theme_color": "#6366f1",
+  "theme_color": "#2D2A78",
   "orientation": "portrait-primary",
   "lang": "pt-BR",
-  "categories": ["utilities"],
+  "categories": [
+    "utilities"
+  ],
   "icons": [
     {
       "src": "/icons/admin-icon-192.png",
