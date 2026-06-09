@@ -107,6 +107,8 @@ export default function Home() {
   const [showAddForm, setShowAddForm] = useState(false);
   // Nomes adicionados nesta sessão (para esconder do painel de pré-salvos, sem apagar do localStorage)
   const [addedThisSession, setAddedThisSession] = useState<string[]>([]);
+  // Device ID do usuário atual (lido do localStorage)
+  const [devId, setDevId] = useState('');
   // Estado de foco do input de nome (para o efeito glow)
   const [isInputFocused, setIsInputFocused] = useState(false);
   // Tolerância de 1 min após o countdown zerar
@@ -139,7 +141,7 @@ export default function Home() {
 
         setIsDbConnected(isSupabaseConfigured());
 
-        // Load pre-saved list from client localStorage
+        // Load pre-saved list and device ID from client localStorage
         if (typeof window !== 'undefined') {
           const stored = localStorage.getItem('gestor_eventos_pre_salvos');
           if (stored) {
@@ -149,6 +151,13 @@ export default function Home() {
               console.error("Failed to parse pre-saved names", e);
             }
           }
+          // Load or create persistent device ID
+          let storedDevId = localStorage.getItem('gestor_eventos_device_id');
+          if (!storedDevId) {
+            storedDevId = 'dev-' + Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('gestor_eventos_device_id', storedDevId);
+          }
+          setDevId(storedDevId);
         }
       } catch (err) {
         console.error("Failed to fetch initial page data", err);
@@ -436,6 +445,11 @@ export default function Home() {
   // Compute effective theme
   const effectiveLight = themePreference === 'system' ? systemIsLight : themePreference === 'light';
 
+  // Lista de nomes ocultos (configurados pelo admin)
+  const nomesOcultosArr = config?.nomes_ocultos
+    ? config.nomes_ocultos.split('\n').map(n => n.trim().toLowerCase()).filter(Boolean)
+    : [];
+
   // Categorize names by Gender, filtered by search query
   const query = searchQuery.toLowerCase().trim();
   const allParticipants = [
@@ -444,9 +458,13 @@ export default function Home() {
       !activeEvent?.nomes.some(n => n.id === fixo.id)
     ) || [])
   ];
-  const filteredParticipants = allParticipants.filter(p =>
-    p.nome.toLowerCase().includes(query)
-  );
+  const filteredParticipants = allParticipants.filter(p => {
+    const isOculto = nomesOcultosArr.includes(p.nome.trim().toLowerCase());
+    const isMine = devId !== '' && p.device_id === devId;
+    // Nomes ocultos só aparecem para o próprio usuário que os registrou
+    if (isOculto && !isMine) return false;
+    return p.nome.toLowerCase().includes(query);
+  });
 
 
   return (
@@ -771,13 +789,7 @@ export default function Home() {
               <div className="p-1.5 space-y-1 divide-y divide-white/5">
                 {filteredParticipants.length > 0 ? (
                   (() => {
-                    let devId = '';
-                    if (typeof window !== 'undefined') {
-                      devId = localStorage.getItem('gestor_eventos_device_id') || '';
-                    }
-                    const nomesOcultosArr = config?.nomes_ocultos
-                      ? config.nomes_ocultos.split('\n').map(n => n.trim().toLowerCase()).filter(Boolean)
-                      : [];
+                    // devId e nomesOcultosArr já computados no nível do componente
                     return [...filteredParticipants].sort((a, b) => {
                       const aIsMine = a.device_id === devId;
                       const bIsMine = b.device_id === devId;

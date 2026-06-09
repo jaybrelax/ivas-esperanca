@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
+  title: 'Cadeia de Oração 🙏 IVAS - Virtude da Esperança',
   description: 'Confirme seu nome na lista de oração.',
   openGraph: {
-    title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
+    title: 'Cadeia de Oração 🙏 IVAS - Virtude da Esperança',
     description: 'Confirme seu nome na lista de orações semanais.',
     url: 'https://esperanca.virtudes.net.br',
     siteName: 'Cadeia de Oração | IVAS',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Cadeia de Oração | IVAS - Virtude da Esperança',
+    title: 'Cadeia de Oração 🙏 IVAS - Virtude da Esperança',
     description: 'Confirme seu nome na lista de orações semanais.',
     images: ['https://esperanca.virtudes.net.br/IMG/featured-image2.png'],
   },
