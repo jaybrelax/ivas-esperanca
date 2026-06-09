@@ -148,7 +148,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // Load all configurations & events list
+  // Load all configurations & events list (used on initial load and branding changes)
   const loadStatsAndData = async () => {
     try {
       const brandCnf = await fetchBrandingConfig();
@@ -179,6 +179,17 @@ export default function AdminDashboard() {
     }
   };
 
+  // Lightweight refresh: apenas atualiza a lista de eventos sem resetar selectedEventId
+  // Usado exclusivamente pelo callback de real-time para evitar closure stale
+  const refreshEventsOnly = async () => {
+    try {
+      const allEv = await listAllEventos();
+      setEvents(allEv);
+    } catch (e) {
+      console.error('Erro ao atualizar lista de eventos em tempo real:', e);
+    }
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       loadStatsAndData();
@@ -196,11 +207,12 @@ export default function AdminDashboard() {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'eventos' },
         () => {
-          loadStatsAndData();
+          // Usa refreshEventsOnly para não resetar o evento selecionado (closure stale)
+          refreshEventsOnly();
         }
       )
       .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'marca_config' },
+        { event: '*', schema: 'public', table: 'config_marca' },
         () => {
           loadStatsAndData();
         }
@@ -210,6 +222,7 @@ export default function AdminDashboard() {
     return () => {
       sb.removeChannel(channel);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update selected event whenever it exists
