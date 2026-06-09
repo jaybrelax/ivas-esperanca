@@ -116,6 +116,7 @@ export default function Home() {
   const [isFinished, setIsFinished] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const formCardRef = useRef<HTMLDivElement>(null);
+  const savedNamesRef = useRef<HTMLDivElement>(null);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -371,18 +372,14 @@ export default function Home() {
     }
 
     try {
-      let devId = 'device';
-      if (typeof window !== 'undefined') {
-        devId = localStorage.getItem('gestor_eventos_device_id') || 'device';
-      }
-
-      const updated = await addParticipantToEvento(activeEvent.id, pName, pSexo, devId);
+      const updated = await addParticipantToEvento(activeEvent.id, pName, pSexo, devId || 'device');
       if (updated) {
         setActiveEvent(updated);
         // Esconde o botão desta sessão (sem remover do localStorage)
         setAddedThisSession(prev => [...prev, pName.toLowerCase()]);
         showToast(`✅ ${pName} adicionado à lista!`, "success");
-        formCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Rola até o topo do painel de nomes pré-salvos
+        savedNamesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     } catch (err: any) {
       showToast(err.message || "Erro no registro simplificado.", "error");
@@ -601,7 +598,7 @@ export default function Home() {
               {/* Cabeçalho e pré-salvos apenas se houver */}
               {savedNames.length > 0 ? (
                 <>
-                  <div className="flex justify-between items-center" id="quick-add-panel">
+                  <div ref={savedNamesRef} className="flex justify-between items-center" id="quick-add-panel">
                     <span className="text-xs font-bold text-indigo-300 flex items-center gap-1">
                       <Zap size={14} className="text-amber-500 fill-amber-500" />
                       Seus NOMES Pré-Salvos (1 clique)
@@ -810,7 +807,11 @@ export default function Home() {
                               {p.nome}
                             </span>
                             {isOculto && (
-                              <span className="text-[8px] uppercase tracking-wider bg-amber-500/30 text-amber-200 px-1 py-0.5 rounded font-bold border border-amber-500/30 shrink-0 ml-1">
+                              <span className={`text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded font-bold border shrink-0 ml-1 ${
+                                effectiveLight
+                                  ? 'bg-amber-100 text-amber-700 border-amber-400/60'
+                                  : 'bg-amber-500/30 text-amber-200 border-amber-500/30'
+                              }`}>
                                 Oculto
                               </span>
                             )}
