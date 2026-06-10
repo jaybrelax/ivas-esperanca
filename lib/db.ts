@@ -29,6 +29,7 @@ export interface ConfigMarca {
   nomes_fixo?: Participant[];
   light_mode?: boolean;
   nomes_ocultos?: string;
+  link_reuniao?: string;
 }
 
 // Default values for brand configuration
@@ -41,7 +42,8 @@ export const DEFAULT_CONFIG: ConfigMarca = {
   copyright: "© 2026 Todos os direitos reservados. IVAS.",
   nomes_fixo: [],
   light_mode: false,
-  nomes_ocultos: ""
+  nomes_ocultos: "",
+  link_reuniao: ""
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -267,6 +269,7 @@ export async function fetchBrandingConfig(): Promise<ConfigMarca> {
               nomes_fixo: (typeof data.nomes_fixo === 'string' ? JSON.parse(data.nomes_fixo) : data.nomes_fixo) || [],
               light_mode: data.light_mode || false,
               nomes_ocultos: data.nomes_ocultos || "",
+              link_reuniao: data.link_reuniao || "",
             };
           }
           return getLocalConfig();
@@ -308,6 +311,7 @@ export async function saveBrandingConfig(config: ConfigMarca): Promise<boolean> 
               nomes_fixo: config.nomes_fixo,
               light_mode: config.light_mode,
               nomes_ocultos: config.nomes_ocultos,
+              link_reuniao: config.link_reuniao,
               updated_at: new Date().toISOString()
             })
             .eq('id', 'default');
@@ -324,7 +328,8 @@ export async function saveBrandingConfig(config: ConfigMarca): Promise<boolean> 
               copyright: config.copyright,
               nomes_fixo: config.nomes_fixo || [],
               light_mode: config.light_mode || false,
-              nomes_ocultos: config.nomes_ocultos || ""
+              nomes_ocultos: config.nomes_ocultos || "",
+              link_reuniao: config.link_reuniao || ""
             });
         }
         

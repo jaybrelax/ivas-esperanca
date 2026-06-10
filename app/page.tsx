@@ -19,7 +19,8 @@ import {
   AlertTriangle,
   Monitor,
   Sun,
-  Moon
+  Moon,
+  Video
 } from 'lucide-react';
 import {
   Evento,
@@ -533,7 +534,7 @@ export default function Home() {
           </p>
 
           {activeEvent ? (
-            <div className="flex items-center justify-center mt-4">
+            <div className="flex flex-col items-center gap-2 mt-4">
               <div className="flex items-center gap-3 bg-emerald-500/20 border border-emerald-400/30 px-5 py-2.5 rounded-xl shadow-lg">
                 <Calendar size={18} className="text-emerald-400/70 shrink-0" />
                 <span className="font-bold text-sm md:text-base text-white capitalize">{formatDateBr(activeEvent.data).replace(/ de \d{4}/, '')}</span>
@@ -550,7 +551,9 @@ export default function Home() {
         {/* Live Countdown Card */}
         {activeEvent && (
           <div className="mb-8 md:mb-10 animate-fade-in-up" id="countdown-card" style={{ animationDelay: '0.1s' }}>
-            <h2 className="text-center text-[10px] md:text-xs font-semibold uppercase tracking-widest text-indigo-300 mb-3">CONTAGEM REGRESSIVA PARA A ORAÇÃO</h2>
+            {!countdown.isOver && (
+              <h2 className="text-center text-[10px] md:text-xs font-semibold uppercase tracking-widest text-indigo-300 mb-3">CONTAGEM REGRESSIVA PARA A ORAÇÃO</h2>
+            )}
 
             {countdown.isOver ? (
               <motion.div
@@ -560,6 +563,33 @@ export default function Home() {
               >
                 <p className="font-bold text-base md:text-lg">{isFinished ? '📢 A oração já encerrou!' : (inputExpired ? '📢 A oração já começou!' : '🚀 A oração vai começar!')}</p>
                 <p className="text-[10px] md:text-xs text-indigo-200 mt-1">{isFinished ? 'A lista de inscrição foi encerrada. Volte na próxima lista!' : (inputExpired ? 'A lista de inscrição foi encerrada.' : 'A lista permanece aberta para correções de última hora.')}</p>
+                {inputExpired && !isFinished && config?.link_reuniao && (
+                  <motion.a
+                    href={config.link_reuniao}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full mt-4 inline-flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-base font-bold px-6 py-3.5 rounded-2xl shadow-lg shadow-indigo-600/25"
+                  >
+                    <Video size={20} />
+                    Acessar Reunião
+                  </motion.a>
+                )}
+                {isFinished && config?.link_reuniao && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    className="w-full mt-4 inline-flex items-center justify-center gap-3 bg-white/5 text-white/40 text-base font-bold px-6 py-3.5 rounded-2xl border border-white/10 cursor-not-allowed select-none"
+                  >
+                    <Video size={20} />
+                    Acessar Reunião
+                  </motion.div>
+                )}
               </motion.div>
             ) : (
               <div className="flex mx-auto text-center bg-gradient-to-br from-[#0f1422] via-[#121829] to-[#0d111e] border border-indigo-500/40 rounded-2xl overflow-hidden shadow-lg shadow-indigo-500/30 animate-card-glow relative" id="countdown-grid">

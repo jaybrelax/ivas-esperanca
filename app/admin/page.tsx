@@ -19,7 +19,8 @@ import {
   Sun,
   Moon,
   Send,
-  Download
+  Download,
+  Video
 } from 'lucide-react';
 import {
   Evento,
@@ -96,6 +97,7 @@ export default function AdminDashboard() {
   const [editCopyright, setEditCopyright] = useState('');
   const [editLightMode, setEditLightMode] = useState(false);
   const [editNomesOcultos, setEditNomesOcultos] = useState('');
+  const [editLinkReuniao, setEditLinkReuniao] = useState('');
 
   // Password / lock passcode state
   const [passcode, setPasscode] = useState('');
@@ -178,6 +180,7 @@ export default function AdminDashboard() {
       setEditCopyright(brandCnf.copyright);
       setEditLightMode(brandCnf.light_mode || false);
       setEditNomesOcultos(brandCnf.nomes_ocultos || '');
+      setEditLinkReuniao(brandCnf.link_reuniao || '');
 
       const allEv = await listAllEventos();
       setEvents(allEv);
@@ -265,7 +268,8 @@ export default function AdminDashboard() {
         banner_url: editBannerUrl.trim() || DEFAULT_CONFIG.banner_url,
         copyright: editCopyright.trim() || DEFAULT_CONFIG.copyright,
         light_mode: editLightMode,
-        nomes_ocultos: editNomesOcultos.trim()
+        nomes_ocultos: editNomesOcultos.trim(),
+        link_reuniao: editLinkReuniao.trim()
       };
 
       const success = await saveBrandingConfig(updatedConfig);
@@ -738,7 +742,7 @@ export default function AdminDashboard() {
                                     }`}
                                   onClick={() => setSelectedEventId(ev.id)}
                                 >
-                                  <span className={`text-3xl lg:text-base leading-none ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
+                                  <span className={`text-2xl lg:text-sm leading-none ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
                                     <span className="font-normal">#</span><span className="font-black">{ev.numero}</span>
                                   </span>
                                   <div className="flex flex-col items-center lg:flex-row lg:items-center gap-1 lg:gap-1.5">
@@ -774,7 +778,7 @@ export default function AdminDashboard() {
                             <span className="text-base md:text-xl text-violet-400">
                               <span className="font-bold">ORAÇÃO</span> <span className="font-black">#{selectedEvent.numero}</span>
                             </span>
-                            <h3 className="text-xs md:text-sm font-bold text-white mt-1 capitalize">
+                            <h3 className="text-sm md:text-base font-bold text-white mt-1 capitalize">
                               {formatDateBr(selectedEvent.data).replace(/ de \d{4}/, '')}
                             </h3>
                             <p className="text-sm text-indigo-200/60 flex items-center gap-1.5 mt-1 font-medium">
@@ -784,7 +788,7 @@ export default function AdminDashboard() {
                           </div>
 
                           <div className="bg-indigo-500/10 px-3 md:px-4 py-2 rounded-xl text-center border border-indigo-500/20 min-w-[64px]">
-                            <span className="block text-lg font-black text-white font-mono leading-none">{selectedEvent.nomes.length + (config.nomes_fixo?.filter(fixo => !selectedEvent.nomes.some(n => n.id === fixo.id)).length || 0)}</span>
+                            <span className="block text-lg font-black text-white leading-none">{selectedEvent.nomes.length + (config.nomes_fixo?.filter(fixo => !selectedEvent.nomes.some(n => n.id === fixo.id)).length || 0)}</span>
                             <span className="text-[12px] md:text-sm uppercase font-bold text-indigo-300/80 tracking-wide mt-1 block">Nomes</span>
                           </div>
                         </div>
@@ -1027,9 +1031,24 @@ export default function AdminDashboard() {
                     <p className="text-sm text-indigo-200/60 mt-1 font-medium">Todas as modificações são refletidas instantaneamente na página de inscrição pública dos participantes.</p>
                   </div>
 
-                  <form onSubmit={handleSaveBranding} className="space-y-4 text-sm font-semibold">
+                   <form onSubmit={handleSaveBranding} className="space-y-4 text-sm font-semibold">
 
-
+                    {/* Link da Reunião — Destacado */}
+                    <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-2xl p-4 space-y-2 ring-1 ring-indigo-500/20">
+                      <div className="flex items-center gap-2">
+                        <Video size={16} className="text-indigo-400" />
+                        <label htmlFor="link-reuniao-field" className="text-indigo-300 uppercase tracking-widest text-xs font-bold">Link da Reunião (Google Meet)</label>
+                      </div>
+                      <input
+                        id="link-reuniao-field"
+                        type="url"
+                        value={editLinkReuniao}
+                        onChange={(e) => setEditLinkReuniao(e.target.value)}
+                        placeholder="Ex: https://meet.google.com/abc-defg-hij"
+                        className="w-full px-3 py-2.5 bg-black/40 border border-indigo-500/30 rounded-xl text-white focus:outline-none focus:border-indigo-400 font-medium"
+                      />
+                      <p className="text-[10px] text-indigo-200/50 font-normal">O link será exibido na página pública apenas após o horário de início do evento.</p>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Title */}
