@@ -732,18 +732,23 @@ export default function AdminDashboard() {
                               return (
                                 <div
                                   key={ev.id}
-                                  className={`snap-start shrink-0 w-[calc(20%-4px)] lg:w-full min-w-[62px] lg:min-w-0 aspect-[5/4] lg:aspect-auto rounded-lg border transition-all cursor-pointer flex flex-col lg:flex-row items-center justify-center lg:justify-between text-center lg:text-left p-0.5 lg:px-4 lg:py-3 relative overflow-hidden mt-2 lg:mt-0 first:ml-3 lg:first:ml-0 ${isSelected
+                                  className={`snap-start shrink-0 w-[calc(20%-4px)] lg:w-full min-w-[80px] lg:min-w-0 aspect-[3/4] lg:aspect-auto rounded-lg border transition-all cursor-pointer flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-1 text-center lg:text-left p-2 lg:px-4 lg:py-3 relative overflow-hidden mt-2 lg:mt-0 first:ml-3 lg:first:ml-0 ${isSelected
                                     ? 'border-violet-400 bg-violet-500/25 ring-2 ring-violet-400/50 scale-[1.02] lg:scale-[1.01]'
                                     : 'border-white/10 bg-white/5 hover:bg-white/10'
                                     }`}
                                   onClick={() => setSelectedEventId(ev.id)}
                                 >
-                                  <span className="font-mono text-base lg:text-sm font-black text-white leading-none">
-                                    #{ev.numero}
+                                  <span className={`text-2xl lg:text-sm leading-none ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
+                                    <span className="font-normal">#</span><span className="font-black">{ev.numero}</span>
                                   </span>
-                                  <span className="text-[9px] font-bold text-white/70 leading-tight mt-0 lg:mt-0">
-                                    {new Date(ev.data + 'T00:00:00').toLocaleDateString('pt-BR', { month: '2-digit', day: '2-digit', year: '2-digit' })}
-                                  </span>
+                                  <div className="flex flex-col items-center lg:flex-row lg:items-center gap-1 lg:gap-1.5">
+                                    <span className={`text-base lg:text-[9px] font-bold leading-tight ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
+                                      {new Date(ev.data + 'T00:00:00').toLocaleDateString('pt-BR', { month: '2-digit', day: '2-digit' })}
+                                    </span>
+                                    <span className={`text-xs lg:text-[9px] font-bold leading-tight flex items-center gap-0.5 ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
+                                      <Clock size={10} /> {(ev.hora_inicio || '20:00').slice(0, 5)}
+                                    </span>
+                                  </div>
                                 </div>
                               );
                             })
