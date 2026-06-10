@@ -445,7 +445,7 @@ export default function Home() {
 
   // Lista de nomes ocultos (configurados pelo admin)
   const nomesOcultosArr = config?.nomes_ocultos
-    ? config.nomes_ocultos.split('\n').map(n => n.trim().toLowerCase()).filter(Boolean)
+    ? config.nomes_ocultos.split(',').map(n => n.trim().toLowerCase()).filter(Boolean)
     : [];
 
   // Categorize names by Gender, filtered by search query
@@ -472,7 +472,7 @@ export default function Home() {
 
       {/* Banner - full width no top spacing on mobile */}
       <div className="w-full relative mb-10 md:mb-16" id="main-banner-layout">
-        <div className="w-full h-44 sm:h-52 md:h-64 rounded-none md:rounded-2xl md:mx-auto md:max-w-[600px] overflow-hidden relative border-0 md:border border-white/10 shadow-2xl">
+        <div className="w-full h-44 sm:h-52 md:h-64 rounded-none md:rounded-xl md:mx-auto md:max-w-[600px] overflow-hidden relative border-0 md:border border-white/10 shadow-2xl">
           {config?.banner_url ? (
             <img
               src={config.banner_url}
@@ -559,7 +559,7 @@ export default function Home() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-indigo-600/30 border border-indigo-500/30 backdrop-blur-md text-white p-4 md:p-5 rounded-2xl shadow-md text-center mx-auto"
+                className="bg-indigo-600/30 border border-indigo-500/30 backdrop-blur-md text-white p-4 md:p-5 rounded-xl shadow-md text-center mx-auto"
               >
                 <p className="font-bold text-base md:text-lg">{isFinished ? '📢 A oração já encerrou!' : (inputExpired ? '📢 A oração já começou!' : '🚀 A oração vai começar!')}</p>
                 <p className="text-[10px] md:text-xs text-indigo-200 mt-1">{isFinished ? 'A lista de inscrição foi encerrada. Volte na próxima lista!' : (inputExpired ? 'A lista de inscrição foi encerrada.' : 'A lista permanece aberta para correções de última hora.')}</p>
@@ -573,7 +573,7 @@ export default function Home() {
                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full mt-4 inline-flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-base font-bold px-6 py-3.5 rounded-2xl shadow-lg shadow-indigo-600/25"
+                    className="w-full mt-4 inline-flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-base font-bold px-6 py-3.5 rounded-xl shadow-lg shadow-indigo-600/25"
                   >
                     <Video size={20} />
                     Acessar Reunião
@@ -584,7 +584,7 @@ export default function Home() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                    className="w-full mt-4 inline-flex items-center justify-center gap-3 bg-white/5 text-white/40 text-base font-bold px-6 py-3.5 rounded-2xl border border-white/10 cursor-not-allowed select-none"
+                    className="w-full mt-4 inline-flex items-center justify-center gap-3 bg-white/5 text-white/40 text-base font-bold px-6 py-3.5 rounded-xl border border-white/10 cursor-not-allowed select-none"
                   >
                     <Video size={20} />
                     Acessar Reunião
@@ -592,7 +592,7 @@ export default function Home() {
                 )}
               </motion.div>
             ) : (
-              <div className="flex mx-auto text-center bg-gradient-to-br from-[#0f1422] via-[#121829] to-[#0d111e] border border-indigo-500/40 rounded-2xl overflow-hidden shadow-lg shadow-indigo-500/30 animate-card-glow relative" id="countdown-grid">
+              <div className="flex mx-auto text-center bg-gradient-to-br from-[#0f1422] via-[#121829] to-[#0d111e] border border-indigo-500/40 rounded-xl overflow-hidden shadow-lg shadow-indigo-500/30 animate-card-glow relative" id="countdown-grid">
                 {/* Top gradient accent line */}
                 <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-indigo-400/60 to-transparent" />
 
@@ -623,7 +623,7 @@ export default function Home() {
         {/* Quick Add Saved names + Registration Card Form unificados */}
         {activeEvent ? (
           !inputExpired && (
-            <div ref={formCardRef} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-2xl mx-auto mb-8 md:mb-12 flex flex-col gap-4 md:gap-5 animate-fade-in-up" id="registration-form-card" style={{ animationDelay: '0.2s' }}>
+            <div ref={formCardRef} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl md:rounded-xl p-4 md:p-6 shadow-2xl mx-auto mb-8 md:mb-12 flex flex-col gap-4 md:gap-5 animate-fade-in-up" id="registration-form-card" style={{ animationDelay: '0.2s' }}>
 
               {/* Cabeçalho e pré-salvos apenas se houver */}
               {savedNames.length > 0 ? (
@@ -667,7 +667,7 @@ export default function Home() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => setShowAddForm(true)}
-                      className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-sm font-bold uppercase tracking-widest shadow-lg shadow-indigo-600/30 border border-indigo-400/30 btn-shimmer"
+                      className="w-full flex items-center justify-center gap-3 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-sm font-bold uppercase tracking-widest shadow-lg shadow-indigo-600/30 border border-indigo-400/30 btn-shimmer"
                       id="btn-adicionar-novo-nome"
                     >
                       <span className="text-xl leading-none font-light">+</span> Adicionar novo nome
@@ -792,7 +792,7 @@ export default function Home() {
             </div>
           )
         ) : (
-          <div className="text-center py-10 md:py-12 bg-white/5 backdrop-blur-md rounded-2xl border border-dashed border-white/10 mx-auto mb-8 md:mb-12">
+          <div className="text-center py-10 md:py-12 bg-white/5 backdrop-blur-md rounded-xl border border-dashed border-white/10 mx-auto mb-8 md:mb-12">
             <Calendar className="mx-auto text-indigo-300 mb-3" size={36} />
             <h3 className="font-semibold text-white text-sm md:text-base">Sem Evento Ativo</h3>
             <p className="text-indigo-200/65 text-[10px] md:text-xs mt-1">Crie um novo evento no painel administrativo para habilitar o envio de nomes.</p>
@@ -803,7 +803,7 @@ export default function Home() {
         {activeEvent && (
           <div className="mb-8 animate-fade-in-up" id="guest-list-container" style={{ animationDelay: '0.25s' }}>
             {/* Unified List layout */}
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl" id="unified-list-card">
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl md:rounded-xl overflow-hidden shadow-2xl" id="unified-list-card">
               <div className="bg-white/5 border-b border-white/10 py-3 px-4 flex justify-between items-center">
                 <span className="font-bold text-xs uppercase tracking-widest text-indigo-300 flex items-center gap-1.5">
                   <Users size={16} /> Lista de Intercessados
@@ -890,7 +890,7 @@ export default function Home() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0b1220] rounded-3xl max-w-sm w-full p-5 md:p-6 shadow-2xl border border-white/10 text-white"
+              className="bg-[#0b1220] rounded-xl max-w-sm w-full p-5 md:p-6 shadow-2xl border border-white/10 text-white"
             >
               <h3 className="text-sm font-semibold border-l-4 border-indigo-500 pl-3 uppercase tracking-wider text-white mb-4">Editar seu Registro</h3>
 
@@ -1041,7 +1041,7 @@ export default function Home() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0b1220]/95 border border-white/10 rounded-3xl p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center text-white"
+              className="bg-[#0b1220]/95 border border-white/10 rounded-xl p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center text-white"
             >
               <div className="mx-auto w-11 h-11 md:w-12 md:h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mb-4">
                 <AlertTriangle size={22} />
@@ -1088,7 +1088,7 @@ export default function Home() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0b1220]/95 border border-white/10 rounded-3xl p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center text-white"
+              className="bg-[#0b1220]/95 border border-white/10 rounded-xl p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center text-white"
             >
               <div className="mx-auto w-11 h-11 md:w-12 md:h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4">
                 <AlertTriangle size={22} />

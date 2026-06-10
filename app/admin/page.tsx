@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CustomDatePicker } from '@/components/CustomDatePicker';
 import {
@@ -11,6 +11,7 @@ import {
   Save,
   UserPlus,
   ChevronRight,
+  ChevronDown,
   Eye,
   Layout,
   Lock,
@@ -98,6 +99,34 @@ export default function AdminDashboard() {
   const [editLightMode, setEditLightMode] = useState(false);
   const [editNomesOcultos, setEditNomesOcultos] = useState('');
   const [editLinkReuniao, setEditLinkReuniao] = useState('');
+  const [tagInputValue, setTagInputValue] = useState('');
+  const [devZoneOpen, setDevZoneOpen] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const autoSave = useCallback((nomesOcultosOverride?: string) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        const updated: ConfigMarca = {
+          ...config,
+          titulo: editTitulo.trim() || DEFAULT_CONFIG.titulo,
+          sub_titulo: editSubTitulo.trim() || DEFAULT_CONFIG.sub_titulo,
+          titulo_2: editTitulo2.trim() || DEFAULT_CONFIG.titulo_2,
+          logo_url: editLogoUrl.trim() || DEFAULT_CONFIG.logo_url,
+          banner_url: editBannerUrl.trim() || DEFAULT_CONFIG.banner_url,
+          copyright: editCopyright.trim() || DEFAULT_CONFIG.copyright,
+          light_mode: editLightMode,
+          nomes_ocultos: nomesOcultosOverride !== undefined ? nomesOcultosOverride.trim() : editNomesOcultos.trim(),
+          link_reuniao: editLinkReuniao.trim()
+        };
+        const success = await saveBrandingConfig(updated);
+        if (success) {
+          setConfig(updated);
+          showToast('Salvo', 'success');
+        }
+      } catch {}
+    }, 600);
+  }, [config, editTitulo, editSubTitulo, editTitulo2, editLogoUrl, editBannerUrl, editCopyright, editLightMode, editNomesOcultos, editLinkReuniao]);
 
   // Password / lock passcode state
   const [passcode, setPasscode] = useState('');
@@ -160,6 +189,7 @@ export default function AdminDashboard() {
     const url = await uploadImage(file);
     if (url) {
       setter(url);
+      autoSave();
       showToast("Imagem enviada para o servidor com sucesso!", "success");
     } else {
       showToast("Falha ao enviar imagem. A visualização local continuará disponível.", "error");
@@ -249,40 +279,11 @@ export default function AdminDashboard() {
     return () => {
       sb.removeChannel(channel);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update selected event whenever it exists
   const selectedEvent = events.find(e => e.id === selectedEventId);
-
-  // Handle saving of branding configs
-  const handleSaveBranding = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const updatedConfig: ConfigMarca = {
-        ...config,
-        titulo: editTitulo.trim() || DEFAULT_CONFIG.titulo,
-        sub_titulo: editSubTitulo.trim() || DEFAULT_CONFIG.sub_titulo,
-        titulo_2: editTitulo2.trim() || DEFAULT_CONFIG.titulo_2,
-        logo_url: editLogoUrl.trim() || DEFAULT_CONFIG.logo_url,
-        banner_url: editBannerUrl.trim() || DEFAULT_CONFIG.banner_url,
-        copyright: editCopyright.trim() || DEFAULT_CONFIG.copyright,
-        light_mode: editLightMode,
-        nomes_ocultos: editNomesOcultos.trim(),
-        link_reuniao: editLinkReuniao.trim()
-      };
-
-      const success = await saveBrandingConfig(updatedConfig);
-      if (success) {
-        setConfig(updatedConfig);
-        showToast("Configurações salvas e aplicadas com sucesso!", "success");
-      } else {
-        showToast("Falha ao salvar. Verifique se o banco de dados está ativo.", "error");
-      }
-    } catch (err: any) {
-      showToast(`Erro ao gravar marca: ${err.message || err}`, "error");
-    }
-  };
 
   // Auto create next logical Friday event
   const handleCreateAutoFriday = () => {
@@ -571,14 +572,14 @@ export default function AdminDashboard() {
 
         {/* Passcode Lock Shield if wanted to demo protection */}
         {!isUnlocked ? (
-          <div className="max-w-md mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-6 mt-12 text-center text-white">
+          <div className="max-w-md mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl p-6 mt-12 text-center text-white">
             <Lock size={36} className="text-indigo-400 mx-auto mb-3" />
             <h3 className="text-md font-bold text-white mb-1 uppercase tracking-wide">Acesso Restrito</h3>
             <p className="text-sm text-indigo-300/80 mb-4">Insira o código de administrador para habilitar alterações no sistema.</p>
             <input
               type="password"
               placeholder="Código de Acesso"
-              className="w-full text-center px-4 py-3 bg-black/40 border border-white/10 rounded-xl mb-4 text-sm font-bold text-white focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full text-center px-4 py-3 bg-black/40 border border-white/10 rounded-lg mb-4 text-sm font-bold text-white focus:outline-none focus:border-indigo-500 transition-colors"
               value={passcode}
               onChange={(e) => {
                 setPasscode(e.target.value);
@@ -599,23 +600,23 @@ export default function AdminDashboard() {
                   { id: 'events', label: 'Listas de Orações', labelFull: 'Gerenciar Listas & Orações', icon: Calendar },
                   { id: 'branding', label: 'Config', labelFull: 'Configurações', icon: Layout }
                 ].map((tab) => {
-                const Icon = tab.icon;
-                const isSelected = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-1.5 py-2 md:py-2.5 px-2 md:px-3 text-xs font-bold border-b-2 transition-all cursor-pointer uppercase tracking-widest whitespace-nowrap shrink-0 ${isSelected
-                      ? 'border-indigo-500 text-white'
-                      : 'border-transparent text-indigo-200/60 hover:text-white'
-                      }`}
-                  >
-                    <Icon size={13} />
-                    <span className="sm:hidden">{tab.label}</span>
-                    <span className="hidden sm:inline">{tab.labelFull}</span>
-                  </button>
-                );
-              })}
+                  const Icon = tab.icon;
+                  const isSelected = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`flex items-center gap-1.5 py-2 md:py-2.5 px-2 md:px-3 text-xs font-bold border-b-2 transition-all cursor-pointer uppercase tracking-widest whitespace-nowrap shrink-0 ${isSelected
+                        ? 'border-indigo-500 text-white'
+                        : 'border-transparent text-indigo-200/60 hover:text-white'
+                        }`}
+                    >
+                      <Icon size={13} />
+                      <span className="sm:hidden">{tab.label}</span>
+                      <span className="hidden sm:inline">{tab.labelFull}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Install PWA Icon */}
@@ -666,7 +667,7 @@ export default function AdminDashboard() {
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             onSubmit={handleCreateCustomEvent}
-                            className="bg-black/40 p-4 rounded-xl border border-white/10 mb-4 space-y-4 overflow-hidden text-sm"
+                            className="bg-black/40 p-4 rounded-lg border border-white/10 mb-4 space-y-4 overflow-hidden text-sm"
                           >
                             <div className="flex justify-center text-white mb-2">
                               <h3 className="text-base font-bold uppercase tracking-wider text-indigo-300">{isEditingEvent ? "Editar Oração" : "Escolha a Data da Oração"}</h3>
@@ -770,7 +771,7 @@ export default function AdminDashboard() {
                   {/* Right panel: Live participant editor inside selected event */}
                   <div className="lg:col-span-8 space-y-4">
                     {selectedEvent ? (
-                      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl">
+                      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg p-4 md:p-6 shadow-2xl">
 
                         {/* Event title summary info */}
                         <div className="flex justify-between items-center flex-wrap gap-2 border-b border-white/10 pb-3 mb-4 md:pb-4 md:mb-6">
@@ -787,7 +788,7 @@ export default function AdminDashboard() {
                             </p>
                           </div>
 
-                          <div className="bg-indigo-500/10 px-3 md:px-4 py-2 rounded-xl text-center border border-indigo-500/20 min-w-[64px]">
+                          <div className="bg-indigo-500/10 px-3 md:px-4 py-2 rounded-lg text-center border border-indigo-500/20 min-w-[64px]">
                             <span className="block text-lg font-black text-white leading-none">{selectedEvent.nomes.length + (config.nomes_fixo?.filter(fixo => !selectedEvent.nomes.some(n => n.id === fixo.id)).length || 0)}</span>
                             <span className="text-[12px] md:text-sm uppercase font-bold text-indigo-300/80 tracking-wide mt-1 block">Nomes</span>
                           </div>
@@ -798,7 +799,7 @@ export default function AdminDashboard() {
                           <button
                             type="button"
                             onClick={() => setShowAddNomeForm(!showAddNomeForm)}
-                            className="flex-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-sm font-bold py-2 px-4 rounded-xl border border-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            className="flex-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-sm font-bold py-2 px-4 rounded-lg border border-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
                           >
                             <Plus size={14} />
                             <span>{showAddNomeForm ? "Fechar" : "Adicionar Nome"}</span>
@@ -806,7 +807,7 @@ export default function AdminDashboard() {
                           <button
                             type="button"
                             onClick={handleEditEvent}
-                            className="bg-white/10 hover:bg-white/20 text-white/80 text-sm font-bold px-4 rounded-xl transition-all flex items-center justify-center gap-2 border border-white/10 shrink-0 cursor-pointer"
+                            className="bg-white/10 hover:bg-white/20 text-white/80 text-sm font-bold px-4 rounded-lg transition-all flex items-center justify-center gap-2 border border-white/10 shrink-0 cursor-pointer"
                             title="Editar data e horário desta oração"
                           >
                             <Edit size={14} />
@@ -822,11 +823,11 @@ export default function AdminDashboard() {
                               value={adminAddNome}
                               onChange={(e) => setAdminAddNome(e.target.value)}
                               placeholder="Nome e Sobrenome"
-                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-semibold text-white focus:outline-none focus:border-indigo-500 placeholder:text-white/30 h-12"
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-sm font-semibold text-white focus:outline-none focus:border-indigo-500 placeholder:text-white/30 h-12"
                             />
 
                             <div className="flex gap-2 w-full h-12">
-                              <div className="flex bg-white/5 p-1 border border-white/10 rounded-xl flex-grow">
+                              <div className="flex bg-white/5 p-1 border border-white/10 rounded-lg flex-grow">
                                 <button
                                   type="button"
                                   onClick={() => setAdminAddSexo('M')}
@@ -844,7 +845,7 @@ export default function AdminDashboard() {
                               </div>
                               <button
                                 type="submit"
-                                className="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-sm font-bold px-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 uppercase tracking-wider cursor-pointer border border-indigo-500/20 shrink-0"
+                                className="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-sm font-bold px-4 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 uppercase tracking-wider cursor-pointer border border-indigo-500/20 shrink-0"
                               >
                                 <Plus size={16} />
                                 <span>Adicionar</span>
@@ -871,7 +872,7 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        <div className="border border-white/10 rounded-2xl divide-y divide-white/5 overflow-hidden shadow-inner bg-black/15" id="participantes-editor-table">
+                        <div className="border border-white/10 rounded-lg divide-y divide-white/5 overflow-hidden shadow-inner bg-black/15" id="participantes-editor-table">
                           {(() => {
                             const allNomes = [
                               ...selectedEvent.nomes,
@@ -880,7 +881,7 @@ export default function AdminDashboard() {
                               ) || [])
                             ];
                             const nomesOcultosArr = config.nomes_ocultos
-                              ? config.nomes_ocultos.split('\n').map(n => n.trim().toLowerCase()).filter(Boolean)
+                              ? config.nomes_ocultos.split(',').map(n => n.trim().toLowerCase()).filter(Boolean)
                               : [];
                             const filteredNomes = allNomes.filter(p => {
                               if (filterType === 'fixo') return p.isFixo;
@@ -1014,7 +1015,7 @@ export default function AdminDashboard() {
 
                       </div>
                     ) : (
-                      <div className="bg-white/5 border border-dashed border-white/10 rounded-3xl p-8 text-center text-indigo-205/60 text-sm">
+                      <div className="bg-white/5 border border-dashed border-white/10 rounded-lg p-8 text-center text-indigo-205/60 text-sm">
                         Clique em &quot;Próxima Sexta&quot; para selecionar a data ou configure uma data personalizada, depois clique em &quot;Confirmar&quot; para criar.
                       </div>
                     )}
@@ -1025,108 +1026,33 @@ export default function AdminDashboard() {
 
               {/* TAB 2: BRANDING E CONFIGURAÇÃO DA CARACTERÍSTICA */}
               {activeTab === 'branding' && (
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl max-w-2xl mx-auto" id="tab-branding-root">
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg p-4 md:p-6 shadow-2xl max-w-2xl mx-auto" id="tab-branding-root">
                   <div className="border-b border-white/10 pb-3 mb-4 md:mb-6">
-                    <h3 className="text-sm font-extrabold text-white uppercase tracking-wider pl-3 border-l-4 border-indigo-500">Customização Visual da Marca</h3>
-                    <p className="text-sm text-indigo-200/60 mt-1 font-medium">Todas as modificações são refletidas instantaneamente na página de inscrição pública dos participantes.</p>
+                    <h3 className="text-sm font-extrabold text-white uppercase tracking-wider pl-3 border-l-4 border-indigo-500">Configurações do App</h3>
+                    <p className="text-sm text-indigo-200/60 mt-1 font-medium">Configure abaixo as configurações do sistema.</p>
                   </div>
 
-                   <form onSubmit={handleSaveBranding} className="space-y-4 text-sm font-semibold">
+                  <div className="space-y-4 text-sm font-semibold">
 
                     {/* Link da Reunião — Destacado */}
-                    <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-2xl p-4 space-y-2 ring-1 ring-indigo-500/20">
+                    <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-4 space-y-2 ring-1 ring-indigo-500/20">
                       <div className="flex items-center gap-2">
                         <Video size={16} className="text-indigo-400" />
                         <label htmlFor="link-reuniao-field" className="text-indigo-300 uppercase tracking-widest text-xs font-bold">Link da Reunião (Google Meet)</label>
                       </div>
-                      <input
-                        id="link-reuniao-field"
-                        type="url"
-                        value={editLinkReuniao}
-                        onChange={(e) => setEditLinkReuniao(e.target.value)}
-                        placeholder="Ex: https://meet.google.com/abc-defg-hij"
-                        className="w-full px-3 py-2.5 bg-black/40 border border-indigo-500/30 rounded-xl text-white focus:outline-none focus:border-indigo-400 font-medium"
-                      />
+                       <input
+                         id="link-reuniao-field"
+                         type="url"
+                         value={editLinkReuniao}
+                         onChange={(e) => { setEditLinkReuniao(e.target.value); autoSave(); }}
+                         placeholder="Ex: https://meet.google.com/abc-defg-hij"
+                         className="w-full px-3 py-2.5 bg-black/40 border border-indigo-500/30 rounded-lg text-white focus:outline-none focus:border-indigo-400 font-medium"
+                       />
                       <p className="text-[10px] text-indigo-200/50 font-normal">O link será exibido na página pública apenas após o horário de início do evento.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Title */}
-                      <div>
-                        <label htmlFor="title-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">TÍTULO PRINCIPAL</label>
-                        <input
-                          id="title-field"
-                          type="text"
-                          required
-                          value={editTitulo}
-                          onChange={(e) => setEditTitulo(e.target.value)}
-                          placeholder="Ex: Lista do Oração Semanal"
-                          className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium"
-                        />
-                      </div>
-
-                      {/* Header Subtitle */}
-                      <div>
-                        <label htmlFor="subtitle-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">SUBTÍTULO</label>
-                        <input
-                          id="subtitle-field"
-                          type="text"
-                          required
-                          value={editSubTitulo}
-                          onChange={(e) => setEditSubTitulo(e.target.value)}
-                          placeholder="Ex: Confirme sua presença preenchendo o nome na lista!"
-                          className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Title 2 footer */}
-                    <div>
-                      <label htmlFor="title2-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">TEXTO DE DESTAQUE DO RODAPÉ</label>
-                      <textarea
-                        id="title2-field"
-                        required
-                        value={editTitulo2}
-                        onChange={(e) => setEditTitulo2(e.target.value)}
-                        placeholder="Ex: Não perca a melhor página de sexta!"
-                        rows={3}
-                        className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium resize-none"
-                      />
-                    </div>
-
-                    {/* Webhook Lista */}
-                    <div>
-                      <label htmlFor="copyright-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">Webhook Lista</label>
-                      <input
-                        id="copyright-field"
-                        type="url"
-                        value={editCopyright}
-                        onChange={(e) => setEditCopyright(e.target.value)}
-                        placeholder="Ex: https://webhook.site/seu-id"
-                        className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium"
-                      />
-                    </div>
-
-                    <div className="border-t border-white/10 pt-4"></div>
-
-                    {/* Nomes Ocultos */}
-                    <div>
-                      <label htmlFor="nomes-ocultos-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">Nomes Ocultos (Webhook)</label>
-                      <textarea
-                        id="nomes-ocultos-field"
-                        value={editNomesOcultos}
-                        onChange={(e) => setEditNomesOcultos(e.target.value)}
-                        placeholder="Insira um nome por linha que não deve ser enviado no payload do Webhook&#10;Ex:&#10;João Silva&#10;Maria Santos"
-                        rows={4}
-                        className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500 font-medium resize-y"
-                      />
-                      <p className="text-[10px] text-indigo-200/50 mt-1 font-normal">Esses nomes continuarão aparecendo na lista pública e no admin com a tag <span className="text-amber-300 font-semibold">[oculto]</span>, mas serão removidos do total e da lista de nomes no payload enviado ao Webhook.</p>
-                    </div>
-
-                    <div className="border-t border-white/10 pt-4"></div>
-
                     {/* Session toggle: Forçar exibição do botão Nova Oração */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
                           <label className="text-indigo-300 uppercase tracking-widest text-xs font-bold">Habilitar Nova Oração</label>
@@ -1146,16 +1072,111 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Title */}
+                      <div>
+                        <label htmlFor="title-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">TÍTULO PRINCIPAL</label>
+                        <input
+                          id="title-field"
+                          type="text"
+                          required
+                          value={editTitulo}
+                          onChange={(e) => { setEditTitulo(e.target.value); autoSave(); }}
+                          placeholder="Ex: Lista do Oração Semanal"
+                          className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500 font-medium"
+                        />
+                      </div>
+
+                      {/* Header Subtitle */}
+                      <div>
+                        <label htmlFor="subtitle-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">SUBTÍTULO</label>
+                        <input
+                          id="subtitle-field"
+                          type="text"
+                          required
+                          value={editSubTitulo}
+                          onChange={(e) => { setEditSubTitulo(e.target.value); autoSave(); }}
+                          placeholder="Ex: Confirme sua presença preenchendo o nome na lista!"
+                          className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500 font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Title 2 footer */}
+                    <div>
+                      <label htmlFor="title2-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">TEXTO DE DESTAQUE DO RODAPÉ</label>
+                      <textarea
+                        id="title2-field"
+                        required
+                          value={editTitulo2}
+                          onChange={(e) => { setEditTitulo2(e.target.value); autoSave(); }}
+                          placeholder="Ex: Não perca a melhor página de sexta!"
+                        rows={3}
+                        className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500 font-medium resize-none"
+                      />
+                    </div>
+
+                    {/* Nomes Ocultos */}
+                    <div>
+                      <label htmlFor="nomes-ocultos-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">Nomes Ocultos (Webhook)</label>
+                      <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/10 rounded-lg min-h-[42px] items-center">
+                        {editNomesOcultos.split(',').filter(Boolean).map((nome, i) => (
+                          <span key={i} className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-200 text-[11px] font-bold px-2 py-1 rounded-lg border border-amber-500/20">
+                            {nome.trim().toUpperCase()}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const list = editNomesOcultos.split(',').map(n => n.trim()).filter(Boolean);
+                                list.splice(i, 1);
+                                const newVal = list.join(',');
+                                setEditNomesOcultos(newVal);
+                                autoSave(newVal);
+                              }}
+                              className="text-amber-300/60 hover:text-amber-200 cursor-pointer leading-none"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                        <input
+                          id="nomes-ocultos-field"
+                          type="text"
+                          defaultValue=""
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ',') {
+                              e.preventDefault();
+                              const val = (e.target as HTMLInputElement).value.trim();
+                              if (val) {
+                                const list = editNomesOcultos.split(',').map(n => n.trim()).filter(Boolean);
+                                if (!list.includes(val.toLowerCase())) {
+                                  list.push(val);
+                                  const newVal = list.join(',');
+                                  setEditNomesOcultos(newVal);
+                                  autoSave(newVal);
+                                }
+                              }
+                              (e.target as HTMLInputElement).value = '';
+                            }
+                          }}
+                          placeholder={editNomesOcultos ? '' : 'Digite um nome e pressione Enter ou vírgula'}
+                          className="flex-1 min-w-[120px] bg-transparent text-white text-sm font-medium placeholder:text-white/30 focus:outline-none border-none p-0.5"
+                        />
+                      </div>
+                      <p className="text-[10px] text-indigo-200/50 mt-1 font-normal">Digite nomes separados por vírgula ou Enter. Esses nomes serão omitidos do payload enviado ao Webhook e receberão a tag <span className="text-amber-300 font-semibold">[oculto]</span> na lista pública.</p>
+                    </div>
+
+
+
                     <div className="border-t border-white/10 pt-4"></div>
 
                     {/* Aparência da Página: Logo and Banner Upload */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
                       <label className="block text-indigo-300 mb-2 uppercase tracking-widest text-xs">Aparência da Página (Banner e Logo)</label>
-                      <div className="relative w-full h-28 md:h-48 rounded-xl border-2 border-dashed border-white/20 bg-black/20 overflow-visible group/main mb-12">
-                        
+                      <div className="relative w-full h-28 md:h-48 rounded-lg border-2 border-dashed border-white/20 bg-black/20 overflow-visible group/main mb-12">
+
                         {/* Banner Upload Area (Background) */}
-                        <div 
-                          className="absolute inset-0 z-0 flex flex-col items-center justify-center hover:bg-white/5 transition-colors overflow-hidden rounded-xl"
+                        <div
+                          className="absolute inset-0 z-0 flex flex-col items-center justify-center hover:bg-white/5 transition-colors overflow-hidden rounded-lg"
                           onDragOver={(e) => e.preventDefault()}
                           onDrop={(e) => {
                             e.preventDefault();
@@ -1194,7 +1215,7 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* Logo Upload Area (Overlay Foreground) */}
-                        <div 
+                        <div
                           className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10"
                           onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
                           onDrop={(e) => {
@@ -1217,14 +1238,14 @@ export default function AdminDashboard() {
                           <label htmlFor="logo-upload-input" className="block relative w-24 h-24 md:w-28 md:h-28 cursor-pointer group/logo shadow-2xl rounded-full">
                             {editLogoUrl ? (
                               <>
-                                <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-xl"></div>
-                                <img src={editLogoUrl} alt="Logo Preview" className="w-full h-full object-cover rounded-full border-4 border-[#0b1220] bg-slate-950 relative z-10" />
+                                <div className="absolute inset-0 bg-white/10 backdrop-blur-xl rounded-full border border-white/20"></div>
+                                <img src={editLogoUrl} alt="Logo Preview" className="w-full h-full object-cover rounded-full border-4 border-[#0b1220] relative z-10" />
                                 <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover/logo:opacity-100 flex items-center justify-center transition-opacity z-20">
                                   <Edit size={18} className="text-white" />
                                 </div>
                               </>
                             ) : (
-                              <div className="w-full h-full rounded-full border-4 border-dashed border-indigo-500/40 text-indigo-300 flex flex-col items-center justify-center shadow-2xl relative z-10">
+                              <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-indigo-300 flex flex-col items-center justify-center shadow-2xl relative z-10">
                                 <Plus size={20} className="mb-1 text-indigo-400 group-hover/logo:scale-110 transition-transform" />
                                 <span className="text-[10px] font-bold uppercase">Logo</span>
                               </div>
@@ -1234,17 +1255,46 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-end gap-4">
+                    {/* Dev Zone Accordion */}
+                    <div className="border-t border-white/10 pt-4"></div>
+                    <div className="bg-white/[0.03] border border-white/10 rounded-lg overflow-hidden">
                       <button
-                        type="submit"
-                        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-bold py-3 px-6 rounded-xl shadow-lg border border-indigo-500/20 hover:shadow-indigo-500/10 transition-all flex items-center justify-center gap-1.5 text-sm tracking-widest uppercase cursor-pointer"
+                        type="button"
+                        onClick={() => setDevZoneOpen(!devZoneOpen)}
+                        className="w-full flex items-center justify-between gap-2 px-4 py-3 text-xs font-bold uppercase tracking-widest text-indigo-300/70 hover:text-indigo-200 hover:bg-white/5 transition-colors cursor-pointer"
                       >
-                        <Save size={14} />
-                        <span>Salvar Todos os Ajustes</span>
+                        <span>Dev Zone</span>
+                        <ChevronDown size={14} className={`transition-transform duration-200 ${devZoneOpen ? 'rotate-180' : ''}`} />
                       </button>
+                      <AnimatePresence initial={false}>
+                        {devZoneOpen && (
+                          <motion.div
+                            key="dev-zone-content"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-4 space-y-4 border-t border-white/10 pt-4">
+                              <div>
+                                <label htmlFor="copyright-field" className="block text-indigo-300 mb-1 uppercase tracking-widest text-xs">Webhook Lista</label>
+                                <input
+                                  id="copyright-field"
+                                  type="url"
+                                  value={editCopyright}
+                                  onChange={(e) => { setEditCopyright(e.target.value); autoSave(); }}
+                                  placeholder="Ex: https://webhook.site/seu-id"
+                                  className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500 font-medium"
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
-                  </form>
+                  </div>
                 </div>
               )}
 
@@ -1266,12 +1316,12 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className={`fixed bottom-4 right-4 z-50 text-sm font-bold px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-1.5 backdrop-blur-xl ${toast.type === 'success'
-              ? 'bg-[#0b1220]/95 text-white border-indigo-500/30'
+            className={`fixed bottom-4 right-4 z-50 text-sm font-bold px-4 py-3 rounded-lg shadow-2xl border flex items-center gap-1.5 backdrop-blur-xl ${toast.type === 'success'
+              ? 'bg-emerald-950/90 text-emerald-200 border-emerald-500/30'
               : 'bg-red-950/90 text-white/90 border-red-500/30'
               }`}
           >
-            <span className={`h-1.5 w-1.5 rounded-full ${toast.type === 'success' ? 'bg-indigo-400 animate-pulse' : 'bg-red-500'}`}></span>
+            <span className={`h-1.5 w-1.5 rounded-full ${toast.type === 'success' ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'}`}></span>
             {toast.message}
           </motion.div>
         )}
@@ -1290,7 +1340,7 @@ export default function AdminDashboard() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0b1220]/95 border border-white/10 rounded-3xl p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center"
+              className="bg-[#0b1220]/95 border border-white/10 rounded-lg p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center"
             >
               <div className="mx-auto w-11 h-11 md:w-12 md:h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mb-4">
                 <AlertTriangle size={22} />
@@ -1303,7 +1353,7 @@ export default function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => setDeletingEvent(null)}
-                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-xl text-sm font-semibold hover:bg-white/10 duration-100 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-lg text-sm font-semibold hover:bg-white/10 duration-100 cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -1315,7 +1365,7 @@ export default function AdminDashboard() {
                     setDeletingEvent(null);
                     await confirmDeleteEvent(idToDel, numToDel);
                   }}
-                  className="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-bold duration-100 shadow-md cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-bold duration-100 shadow-md cursor-pointer"
                 >
                   Excluir Permanentemente
                 </button>
@@ -1338,7 +1388,7 @@ export default function AdminDashboard() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0b1220]/95 border border-white/10 rounded-3xl p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center"
+              className="bg-[#0b1220]/95 border border-white/10 rounded-lg p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center"
             >
               <div className="mx-auto w-11 h-11 md:w-12 md:h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mb-4">
                 <AlertTriangle size={22} />
@@ -1351,7 +1401,7 @@ export default function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => setDeletingParticipant(null)}
-                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-xl text-sm font-semibold hover:bg-white/10 duration-100 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-lg text-sm font-semibold hover:bg-white/10 duration-100 cursor-pointer"
                 >
                   Manter na Lista
                 </button>
@@ -1362,7 +1412,7 @@ export default function AdminDashboard() {
                     setDeletingParticipant(null);
                     await confirmDeleteParticipant(idToDel);
                   }}
-                  className="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-bold duration-100 shadow-md cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-bold duration-100 shadow-md cursor-pointer"
                 >
                   Confirmar Remoção
                 </button>
@@ -1383,7 +1433,7 @@ export default function AdminDashboard() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0b1220]/95 border border-white/10 rounded-3xl p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center"
+              className="bg-[#0b1220]/95 border border-white/10 rounded-lg p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-center"
             >
               <div className="mx-auto w-11 h-11 md:w-12 md:h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4">
                 <Send size={20} />
@@ -1399,7 +1449,7 @@ export default function AdminDashboard() {
                     ...selectedEvent.nomes
                   ];
                   const nomesOcultosArr = config.nomes_ocultos
-                    ? config.nomes_ocultos.split('\n').map(n => n.trim().toLowerCase()).filter(Boolean)
+                    ? config.nomes_ocultos.split(',').map(n => n.trim().toLowerCase()).filter(Boolean)
                     : [];
                   const allFiltered = all.filter(p => !nomesOcultosArr.includes(p.nome.trim().toLowerCase()));
                   const m = allFiltered.filter(p => p.sexo === 'M').length;
@@ -1412,7 +1462,7 @@ export default function AdminDashboard() {
                   type="button"
                   onClick={() => setShowWebhookModal(false)}
                   disabled={sendingWebhook}
-                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-xl text-sm font-semibold hover:bg-white/10 duration-100 cursor-pointer disabled:opacity-50"
+                  className="w-full sm:w-auto px-4 py-2.5 border border-white/10 bg-white/5 text-white/90 rounded-lg text-sm font-semibold hover:bg-white/10 duration-100 cursor-pointer disabled:opacity-50"
                 >
                   Cancelar
                 </button>
@@ -1427,7 +1477,7 @@ export default function AdminDashboard() {
                       ...selectedEvent.nomes
                     ];
                     const nomesOcultosArr = config.nomes_ocultos
-                      ? config.nomes_ocultos.split('\n').map(n => n.trim().toLowerCase()).filter(Boolean)
+                      ? config.nomes_ocultos.split(',').map(n => n.trim().toLowerCase()).filter(Boolean)
                       : [];
                     const allFiltered = all.filter(p => !nomesOcultosArr.includes(p.nome.trim().toLowerCase()));
                     const masculino = allFiltered.filter(p => p.sexo === 'M').map(p => p.nome);
@@ -1460,7 +1510,7 @@ export default function AdminDashboard() {
                       setShowWebhookModal(false);
                     }
                   }}
-                  className="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold duration-100 shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold duration-100 shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {sendingWebhook ? (
                     <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block"></span> Enviando...</>
