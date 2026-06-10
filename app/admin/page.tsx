@@ -103,7 +103,7 @@ export default function AdminDashboard() {
   const [devZoneOpen, setDevZoneOpen] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const autoSave = useCallback((nomesOcultosOverride?: string) => {
+  const autoSave = useCallback((overrides?: Partial<ConfigMarca>) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       try {
@@ -116,8 +116,9 @@ export default function AdminDashboard() {
           banner_url: editBannerUrl.trim() || DEFAULT_CONFIG.banner_url,
           copyright: editCopyright.trim() || DEFAULT_CONFIG.copyright,
           light_mode: editLightMode,
-          nomes_ocultos: nomesOcultosOverride !== undefined ? nomesOcultosOverride.trim() : editNomesOcultos.trim(),
-          link_reuniao: editLinkReuniao.trim()
+          nomes_ocultos: editNomesOcultos.trim(),
+          link_reuniao: editLinkReuniao.trim(),
+          ...overrides,
         };
         const success = await saveBrandingConfig(updated);
         if (success) {
@@ -134,9 +135,17 @@ export default function AdminDashboard() {
 
   // Active event manual participant insertion
   const [adminAddNome, setAdminAddNome] = useState('');
-  const [adminAddSexo, setAdminAddSexo] = useState<'M' | 'F'>('M');
+  const [adminAddSexo, setAdminAddSexo] = useState<'M' | 'F' | null>(null);
   const [adminAddFixo, setAdminAddFixo] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'fixo' | 'M' | 'F'>('all');
+
+  useEffect(() => {
+    if (filterType === 'M' || filterType === 'F') {
+      setAdminAddSexo(filterType);
+    } else {
+      setAdminAddSexo(null);
+    }
+  }, [filterType]);
 
   // Editing existing guest
   const [adminEditingParticipantId, setAdminEditingParticipantId] = useState<string | null>(null);
@@ -370,6 +379,11 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!selectedEvent) return;
 
+    if (!adminAddSexo) {
+      showToast("Selecione o gênero do participante.", "error");
+      return;
+    }
+
     const trimmed = adminAddNome.trim();
     if (!trimmed) {
       showToast("Insira um nome válido.", "error");
@@ -568,7 +582,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-transparent text-white flex flex-col justify-between" id="admin-main-root">
 
-      <div className="container mx-auto px-3 py-4 md:px-4 md:py-8 max-w-5xl flex-grow">
+      <div className="container mx-auto px-4 py-4 md:px-4 md:py-8 max-w-5xl flex-grow">
 
         {/* Passcode Lock Shield if wanted to demo protection */}
         {!isUnlocked ? (
@@ -594,7 +608,7 @@ export default function AdminDashboard() {
         ) : (
           <div>
             {/* Dashboard Tabs Selection - scrollável horizontalmente no mobile */}
-            <div className="flex items-center justify-between border-b border-white/10 mb-5 md:mb-8" id="admin-tabs">
+            <div className="flex items-center justify-between border-b border-white/10 mb-4 md:mb-8" id="admin-tabs">
               <div className="flex overflow-x-auto no-scrollbar">
                 {[
                   { id: 'events', label: 'Listas de Orações', labelFull: 'Gerenciar Listas & Orações', icon: Calendar },
@@ -636,12 +650,12 @@ export default function AdminDashboard() {
 
               {/* TAB 1: LISTAS E GESTÃO DE PARTICIPANTES */}
               {activeTab === 'events' && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 md:gap-8" id="tab-events-root">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 md:gap-6" id="tab-events-root">
 
                   {/* Left panel: List of events */}
-                  <div className="lg:col-span-4 space-y-3 md:space-y-4 animate-fade-in-up lg:sticky lg:top-5 lg:self-start">
-                    <div className="pb-3">
-                      <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg bg-white/10 shadow-lg px-5 py-3 mb-3 ${!showCreateButton ? 'hidden lg:block' : ''}`}>
+                    <div className="lg:col-span-4 space-y-2 md:space-y-3 animate-fade-in-up lg:sticky lg:top-5 lg:self-start">
+                    <div className="pb-2">
+                      <div className={`border border-white/10 rounded-lg px-4 py-2.5 mb-2 ${!showCreateButton ? 'hidden lg:block' : ''}`}>
                         <div className="flex justify-between items-center">
                           <h4 className="text-sm font-bold uppercase tracking-widest text-indigo-300">Orações</h4>
                           {showCreateButton && (
@@ -650,7 +664,7 @@ export default function AdminDashboard() {
                                 setShowCreateEventForm(!showCreateEventForm);
                                 if (showCreateEventForm) setIsEditingEvent(false);
                               }}
-                              className={`bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-1 px-3 rounded-lg border border-indigo-500/50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md ${showCreateEventForm ? 'bg-indigo-700' : ''}`}
+                              className={`bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2 px-4 rounded-lg border border-indigo-500/50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md ${showCreateEventForm ? 'bg-indigo-700' : ''}`}
                             >
                               {showCreateEventForm ? <Calendar size={12} /> : <Plus size={12} />}
                               <span>{showCreateEventForm ? "Fechar" : "Nova Oração"}</span>
@@ -667,7 +681,7 @@ export default function AdminDashboard() {
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             onSubmit={handleCreateCustomEvent}
-                            className="bg-black/40 p-4 rounded-lg border border-white/10 mb-4 space-y-4 overflow-hidden text-sm"
+                            className="bg-black/40 p-3 rounded-lg border border-white/10 mb-3 space-y-3 overflow-hidden text-sm"
                           >
                             <div className="flex justify-center text-white mb-2">
                               <h3 className="text-base font-bold uppercase tracking-wider text-indigo-300">{isEditingEvent ? "Editar Oração" : "Escolha a Data da Oração"}</h3>
@@ -735,23 +749,23 @@ export default function AdminDashboard() {
                             events.map((ev) => {
                               const isSelected = ev.id === selectedEventId;
                               return (
-                                <div
+                                 <div
                                   key={ev.id}
-                                  className={`snap-start shrink-0 w-[calc(20%-4px)] lg:w-full min-w-[80px] lg:min-w-0 aspect-[4/5] lg:aspect-auto rounded-lg border transition-all cursor-pointer flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-1 text-center lg:text-left p-1.5 lg:px-4 lg:py-3 relative overflow-hidden mt-0.5 lg:mt-0 first:ml-3 lg:first:ml-0 ${isSelected
-                                    ? 'border-violet-400 bg-violet-500/25 ring-2 ring-violet-400/50 scale-[1.02] lg:scale-[1.01]'
-                                    : 'border-white/10 bg-white/5 hover:bg-white/10'
-                                    }`}
+                                   className={`snap-start shrink-0 w-[calc(20%-4px)] lg:w-full min-w-[60px] lg:min-w-0 aspect-[1/1] lg:aspect-auto rounded-lg border transition-all cursor-pointer flex flex-col lg:flex-row items-center justify-center lg:justify-between text-center lg:text-left gap-1 lg:gap-0 px-2 py-3 lg:px-4 lg:py-3.5 relative overflow-hidden mt-[3px] lg:mt-0 first:ml-3 lg:first:ml-0 ${isSelected
+                                      ? 'border-violet-400 bg-violet-500/20 ring-2 ring-violet-400/50 shadow-lg shadow-violet-500/20 scale-[1.02] lg:scale-[1.01]'
+                                      : 'border-white/10 bg-white/[0.04] hover:bg-white/10'
+                                      }`}
                                   onClick={() => setSelectedEventId(ev.id)}
                                 >
-                                  <span className={`text-2xl lg:text-sm leading-none ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
+                                  <span className={`text-base lg:text-base leading-tight ${isSelected ? 'text-white' : 'text-white/50'}`}>
                                     <span className="font-normal">#</span><span className="font-black">{ev.numero}</span>
                                   </span>
-                                  <div className="flex flex-col items-center lg:flex-row lg:items-center gap-1 lg:gap-1.5">
-                                    <span className={`text-base lg:text-sm font-bold leading-tight ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
+                                  <div className="flex flex-col items-center lg:flex-row lg:items-center gap-1 lg:gap-3">
+                                    <span className={`text-[11px] lg:text-base font-semibold leading-tight ${isSelected ? 'text-violet-200' : 'text-white/45'}`}>
                                       {new Date(ev.data + 'T00:00:00').toLocaleDateString('pt-BR', { month: '2-digit', day: '2-digit' })}
                                     </span>
-                                    <span className={`text-xs lg:text-sm font-bold leading-tight flex items-center gap-0.5 ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
-                                      <Clock size={10} /> {(ev.hora_inicio || '20:00').slice(0, 5)}
+                                    <span className={`text-[11px] lg:text-base font-semibold leading-tight ${isSelected ? 'text-violet-200' : 'text-white/45'}`}>
+                                      <Clock size={11} className="inline" /> {(ev.hora_inicio || '20:00').slice(0, 5)}
                                     </span>
                                   </div>
                                 </div>
@@ -769,28 +783,28 @@ export default function AdminDashboard() {
                   </div>
 
                   {/* Right panel: Live participant editor inside selected event */}
-                  <div className="lg:col-span-8 space-y-4">
+                  <div className="lg:col-span-8 space-y-3">
                     {selectedEvent ? (
-                      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg p-4 md:p-6 shadow-2xl">
+                      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg px-3 pt-3 pb-2 md:px-4 md:pt-4 md:pb-3 shadow-2xl">
 
                         {/* Event title summary info */}
-                        <div className="flex justify-between items-center flex-wrap gap-2 border-b border-white/10 pb-3 mb-4 md:pb-4 md:mb-6">
+                        <div className="flex justify-between items-center flex-wrap gap-1.5 border-b border-white/10 pb-2 mb-2 md:pb-2.5 md:mb-3">
                           <div>
-                            <span className="text-base md:text-xl text-violet-400">
+                            <span className="text-base md:text-lg text-violet-400">
                               <span className="font-bold">ORAÇÃO</span> <span className="font-black">#{selectedEvent.numero}</span>
                             </span>
-                            <h3 className="text-sm md:text-base font-bold text-white mt-1 capitalize">
+                            <h3 className="text-sm md:text-base font-bold text-white mt-0.5 capitalize">
                               {formatDateBr(selectedEvent.data).replace(/ de \d{4}/, '')}
                             </h3>
-                            <p className="text-sm text-indigo-200/60 flex items-center gap-1.5 mt-1 font-medium">
-                              <Clock size={13} className="text-indigo-300" />
+                            <p className="text-xs text-indigo-200/60 flex items-center gap-1 mt-0.5 font-medium">
+                              <Clock size={11} className="text-indigo-300" />
                               Início: {(selectedEvent.hora_inicio || '20:00').slice(0, 5)}
                             </p>
                           </div>
 
-                          <div className="bg-indigo-500/10 px-3 md:px-4 py-2 rounded-lg text-center border border-indigo-500/20 min-w-[64px]">
-                            <span className="block text-lg font-black text-white leading-none">{selectedEvent.nomes.length + (config.nomes_fixo?.filter(fixo => !selectedEvent.nomes.some(n => n.id === fixo.id)).length || 0)}</span>
-                            <span className="text-[12px] md:text-sm uppercase font-bold text-indigo-300/80 tracking-wide mt-1 block">Nomes</span>
+                          <div className="bg-indigo-500/10 px-2 md:px-3 py-1.5 rounded-lg text-center border border-indigo-500/20 min-w-[56px]">
+                            <span className="block text-base font-black text-white leading-none">{selectedEvent.nomes.length + (config.nomes_fixo?.filter(fixo => !selectedEvent.nomes.some(n => n.id === fixo.id)).length || 0)}</span>
+                            <span className="text-[10px] md:text-xs uppercase font-bold text-indigo-300/80 tracking-wide mt-0.5 block">Nomes</span>
                           </div>
                         </div>
 
@@ -1026,16 +1040,16 @@ export default function AdminDashboard() {
 
               {/* TAB 2: BRANDING E CONFIGURAÇÃO DA CARACTERÍSTICA */}
               {activeTab === 'branding' && (
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg p-4 md:p-6 shadow-2xl max-w-2xl mx-auto" id="tab-branding-root">
-                  <div className="border-b border-white/10 pb-3 mb-4 md:mb-6">
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg p-4 md:p-5 shadow-2xl max-w-2xl mx-auto" id="tab-branding-root">
+                    <div className="border-b border-white/10 pb-2 mb-3 md:mb-4">
                     <h3 className="text-sm font-extrabold text-white uppercase tracking-wider pl-3 border-l-4 border-indigo-500">Configurações do App</h3>
                     <p className="text-sm text-indigo-200/60 mt-1 font-medium">Configure abaixo as configurações do sistema.</p>
                   </div>
 
-                  <div className="space-y-4 text-sm font-semibold">
+                  <div className="space-y-3 text-sm font-semibold">
 
                     {/* Link da Reunião — Destacado */}
-                    <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-4 space-y-2 ring-1 ring-indigo-500/20">
+                    <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-3 space-y-2 ring-1 ring-indigo-500/20">
                       <div className="flex items-center gap-2">
                         <Video size={16} className="text-indigo-400" />
                         <label htmlFor="link-reuniao-field" className="text-indigo-300 uppercase tracking-widest text-xs font-bold">Link da Reunião (Google Meet)</label>
@@ -1052,7 +1066,7 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Session toggle: Forçar exibição do botão Nova Oração */}
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-3 space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
                           <label className="text-indigo-300 uppercase tracking-widest text-xs font-bold">Habilitar Nova Oração</label>
@@ -1130,7 +1144,7 @@ export default function AdminDashboard() {
                                 list.splice(i, 1);
                                 const newVal = list.join(',');
                                 setEditNomesOcultos(newVal);
-                                autoSave(newVal);
+                                autoSave({ nomes_ocultos: newVal });
                               }}
                               className="text-amber-300/60 hover:text-amber-200 cursor-pointer leading-none"
                             >
@@ -1152,7 +1166,7 @@ export default function AdminDashboard() {
                                   list.push(val);
                                   const newVal = list.join(',');
                                   setEditNomesOcultos(newVal);
-                                  autoSave(newVal);
+                                  autoSave({ nomes_ocultos: newVal });
                                 }
                               }
                               (e.target as HTMLInputElement).value = '';
