@@ -631,7 +631,7 @@ export default function AdminDashboard() {
 
               {/* TAB 1: LISTAS E GESTÃO DE PARTICIPANTES */}
               {activeTab === 'events' && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8" id="tab-events-root">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 md:gap-8" id="tab-events-root">
 
                   {/* Left panel: List of events */}
                   <div className="lg:col-span-4 space-y-3 md:space-y-4 animate-fade-in-up lg:sticky lg:top-5 lg:self-start">
@@ -725,27 +725,27 @@ export default function AdminDashboard() {
 
                       {/* Display current events carousel */}
                       <div className="relative">
-                        <div className="flex lg:grid lg:grid-cols-1 gap-1.5 lg:gap-[10px] overflow-x-auto lg:overflow-x-visible snap-x snap-mandatory lg:snap-none scroll-smooth no-scrollbar pb-1" id="events-carousel">
+                        <div className="flex lg:grid lg:grid-cols-1 gap-2 lg:gap-[10px] overflow-x-auto lg:overflow-x-visible snap-x snap-mandatory lg:snap-none scroll-smooth no-scrollbar pb-1" id="events-carousel">
                           {events.length > 0 ? (
                             events.map((ev) => {
                               const isSelected = ev.id === selectedEventId;
                               return (
                                 <div
                                   key={ev.id}
-                                  className={`snap-start shrink-0 w-[calc(20%-4px)] lg:w-full min-w-[80px] lg:min-w-0 aspect-[3/4] lg:aspect-auto rounded-lg border transition-all cursor-pointer flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-1 text-center lg:text-left p-2 lg:px-4 lg:py-3 relative overflow-hidden mt-2 lg:mt-0 first:ml-3 lg:first:ml-0 ${isSelected
+                                  className={`snap-start shrink-0 w-[calc(20%-4px)] lg:w-full min-w-[80px] lg:min-w-0 aspect-[4/5] lg:aspect-auto rounded-lg border transition-all cursor-pointer flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-1 text-center lg:text-left p-1.5 lg:px-4 lg:py-3 relative overflow-hidden mt-0.5 lg:mt-0 first:ml-3 lg:first:ml-0 ${isSelected
                                     ? 'border-violet-400 bg-violet-500/25 ring-2 ring-violet-400/50 scale-[1.02] lg:scale-[1.01]'
                                     : 'border-white/10 bg-white/5 hover:bg-white/10'
                                     }`}
                                   onClick={() => setSelectedEventId(ev.id)}
                                 >
-                                  <span className={`text-2xl lg:text-sm leading-none ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
+                                  <span className={`text-3xl lg:text-base leading-none ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
                                     <span className="font-normal">#</span><span className="font-black">{ev.numero}</span>
                                   </span>
                                   <div className="flex flex-col items-center lg:flex-row lg:items-center gap-1 lg:gap-1.5">
-                                    <span className={`text-base lg:text-[9px] font-bold leading-tight ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
+                                    <span className={`text-base lg:text-sm font-bold leading-tight ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
                                       {new Date(ev.data + 'T00:00:00').toLocaleDateString('pt-BR', { month: '2-digit', day: '2-digit' })}
                                     </span>
-                                    <span className={`text-xs lg:text-[9px] font-bold leading-tight flex items-center gap-0.5 ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
+                                    <span className={`text-xs lg:text-sm font-bold leading-tight flex items-center gap-0.5 ${isSelected ? 'text-violet-200' : 'text-white/30'}`}>
                                       <Clock size={10} /> {(ev.hora_inicio || '20:00').slice(0, 5)}
                                     </span>
                                   </div>
@@ -771,8 +771,8 @@ export default function AdminDashboard() {
                         {/* Event title summary info */}
                         <div className="flex justify-between items-center flex-wrap gap-2 border-b border-white/10 pb-3 mb-4 md:pb-4 md:mb-6">
                           <div>
-                            <span className="text-base md:text-xl font-bold text-violet-400 font-mono">
-                              ORAÇÃO #{selectedEvent.numero}
+                            <span className="text-base md:text-xl text-violet-400">
+                              <span className="font-bold">ORAÇÃO</span> <span className="font-black">#{selectedEvent.numero}</span>
                             </span>
                             <h3 className="text-xs md:text-sm font-bold text-white mt-1 capitalize">
                               {formatDateBr(selectedEvent.data).replace(/ de \d{4}/, '')}
@@ -784,8 +784,8 @@ export default function AdminDashboard() {
                           </div>
 
                           <div className="bg-indigo-500/10 px-3 md:px-4 py-2 rounded-xl text-center border border-indigo-500/20 min-w-[64px]">
-                            <span className="block text-base font-black text-white font-mono leading-none">{selectedEvent.nomes.length + (config.nomes_fixo?.filter(fixo => !selectedEvent.nomes.some(n => n.id === fixo.id)).length || 0)}</span>
-                            <span className="text-[10px] md:text-xs uppercase font-bold text-indigo-300/80 tracking-wide mt-1 block">Nomes</span>
+                            <span className="block text-lg font-black text-white font-mono leading-none">{selectedEvent.nomes.length + (config.nomes_fixo?.filter(fixo => !selectedEvent.nomes.some(n => n.id === fixo.id)).length || 0)}</span>
+                            <span className="text-[12px] md:text-sm uppercase font-bold text-indigo-300/80 tracking-wide mt-1 block">Nomes</span>
                           </div>
                         </div>
 
@@ -859,7 +859,7 @@ export default function AdminDashboard() {
                               <button
                                 key={type}
                                 onClick={() => setFilterType(type)}
-                                className={`flex-1 py-1 px-1.5 text-[10px] font-bold rounded uppercase tracking-wider duration-100 cursor-pointer whitespace-nowrap text-center min-w-[40px] ${filterType === type ? 'bg-indigo-500 text-white shadow' : 'text-white/40 hover:text-white'}`}
+                                className={`flex-1 py-1.5 px-1.5 text-[10px] font-bold rounded uppercase tracking-wider duration-100 cursor-pointer whitespace-nowrap text-center min-w-[40px] ${filterType === type ? 'bg-indigo-500 text-white shadow' : 'text-white/40 hover:text-white'}`}
                               >
                                 {type === 'all' ? 'Todos' : type === 'fixo' ? '📌 Fixos' : type === 'M' ? '♂️ Masc.' : '♀️ Fem.'}
                               </button>
@@ -928,11 +928,11 @@ export default function AdminDashboard() {
                                     ) : (
                                       <>
                                         <div className="flex items-center gap-2 min-w-0 pr-4">
-                                          <span className="font-mono text-xs text-indigo-300 font-bold w-4 shrink-0">
+                                          <span className="font-mono text-sm text-indigo-300 font-bold w-5 shrink-0">
                                             {idx + 1}
                                           </span>
-                                          <span className="shrink-0 text-xs" title={p.sexo === 'F' ? 'Feminino' : 'Masculino'}>{p.sexo === 'F' ? '♀️' : '♂️'}</span>
-                                          <span className="font-semibold text-white uppercase text-xs">
+                                          <span className="shrink-0 text-sm" title={p.sexo === 'F' ? 'Feminino' : 'Masculino'}>{p.sexo === 'F' ? '♀️' : '♂️'}</span>
+                                          <span className="font-semibold text-white uppercase text-sm">
                                             {p.nome}
                                           </span>
                                           {isOculto && (
