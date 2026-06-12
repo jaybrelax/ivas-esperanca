@@ -560,9 +560,9 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-indigo-600/30 border border-indigo-500/30 backdrop-blur-md text-white p-4 md:p-5 rounded-xl shadow-md text-center mx-auto"
               >
-                <p className="font-bold text-base md:text-lg">{isFinished ? '📢 A oração já encerrou!' : (inputExpired ? '📢 A oração já começou!' : '🚀 A oração vai começar!')}</p>
-                <p className="text-[10px] md:text-xs text-indigo-200 mt-1">{isFinished ? 'A lista de inscrição foi encerrada. Volte na próxima lista!' : (inputExpired ? 'A lista de inscrição foi encerrada.' : 'A lista permanece aberta para correções de última hora.')}</p>
-                {inputExpired && !isFinished && config?.link_reuniao && (
+                <p className="font-bold text-base md:text-lg">{isFinished ? '📢 A oração já encerrou!' : '📢 A oração já começou!'}</p>
+                <p className="text-[10px] md:text-xs text-indigo-200 mt-1">{isFinished ? 'A lista de inscrição foi encerrada. Volte na próxima lista!' : 'A lista de inscrição foi encerrada.'}</p>
+                {countdown.isOver && !isFinished && config?.link_reuniao && (
                   <motion.a
                     href={config.link_reuniao}
                     target="_blank"
@@ -621,7 +621,7 @@ export default function Home() {
 
         {/* Quick Add Saved names + Registration Card Form unificados */}
         {activeEvent ? (
-          !inputExpired && (
+          !countdown.isOver && (
             <div ref={formCardRef} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl md:rounded-xl p-4 md:p-6 shadow-2xl mx-auto mb-8 md:mb-12 flex flex-col gap-4 md:gap-5 animate-fade-in-up" id="registration-form-card" style={{ animationDelay: '0.2s' }}>
 
               {/* Cabeçalho e pré-salvos apenas se houver */}
