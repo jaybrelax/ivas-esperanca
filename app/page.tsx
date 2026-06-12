@@ -239,10 +239,14 @@ export default function Home() {
       const difference = targetTime - nowTime;
 
       if (difference <= 0) {
-        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0, isOver: true });
         const elapsed = nowTime - targetTime;
-        if (elapsed >= 60000) {
+        const extraSecs = Math.max(0, Math.floor((120000 - elapsed) / 1000));
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: extraSecs, isOver: true });
+        
+        if (elapsed >= 120000) {
           setInputExpired(true);
+        } else {
+          setInputExpired(false);
         }
         if (elapsed >= 20 * 60000) {
           setIsFinished(true);
@@ -564,6 +568,7 @@ export default function Home() {
                 <p className="text-[10px] md:text-xs text-indigo-200 mt-1">{isFinished ? 'A lista de inscrição foi encerrada. Volte na próxima lista!' : 'A lista de inscrição foi encerrada.'}</p>
                 {countdown.isOver && !isFinished && config?.link_reuniao && (
                   <motion.a
+                    id="btn-acessar-reuniao"
                     href={config.link_reuniao}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -621,8 +626,14 @@ export default function Home() {
 
         {/* Quick Add Saved names + Registration Card Form unificados */}
         {activeEvent ? (
-          !countdown.isOver && (
+          (!countdown.isOver || !inputExpired) && (
             <div ref={formCardRef} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl md:rounded-xl p-4 md:p-6 shadow-2xl mx-auto mb-8 md:mb-12 flex flex-col gap-4 md:gap-5 animate-fade-in-up" id="registration-form-card" style={{ animationDelay: '0.2s' }}>
+
+              {countdown.isOver && !inputExpired && (
+                <div className="bg-amber-500/20 text-amber-200 border border-amber-500/30 p-3 rounded-lg text-center text-sm font-bold animate-pulse" id="extra-time-warning">
+                  ⚠️ Última chance! O grupo de nomes fechará em {countdown.seconds} segundos...
+                </div>
+              )}
 
               {/* Cabeçalho e pré-salvos apenas se houver */}
               {savedNames.length > 0 ? (

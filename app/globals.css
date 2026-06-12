@@ -305,10 +305,14 @@ button, label {
 /* Keep action buttons and main submit button white text */
 #public-main-root.light-mode #btn-adicionar-novo-nome,
 #public-main-root.light-mode #btn-confirmar-presenca,
+#public-main-root.light-mode #btn-acessar-reuniao,
 #public-main-root.light-mode #btn-adicionar-novo-nome *,
 #public-main-root.light-mode #btn-confirmar-presenca *,
+#public-main-root.light-mode #btn-acessar-reuniao *,
 #public-main-root.light-mode .bg-indigo-600,
-#public-main-root.light-mode .bg-indigo-600 * {
+#public-main-root.light-mode .bg-indigo-600 *,
+#public-main-root.light-mode .bg-red-600,
+#public-main-root.light-mode .bg-red-600 * {
   color: #ffffff !important;
 }
 
@@ -534,8 +538,15 @@ button, label {
 #public-main-root.light-mode .bg-slate-955 {
   background: rgba(245, 244, 248, 0.85) !important;
 }
-#public-main-root.light-mode .bg-\[\#0b1220\] {
+#public-main-root.light-mode .bg-\[\#0b1220\],
+#public-main-root.light-mode .bg-\[\#0b1220\]\/95 {
   background: #ffffff !important;
+}
+
+#public-main-root.light-mode #extra-time-warning {
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #b45309 !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
 }
 
 /* ───── BOTÕES DE AÇÃO (EDITAR/EXCLUIR) ───── */
