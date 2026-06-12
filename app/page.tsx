@@ -97,14 +97,8 @@ export default function Home() {
   const [deletingParticipant, setDeletingParticipant] = useState<{ id: string; nome: string } | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // Theme preference: 'system' | 'light' | 'dark'
-  const [themePreference, setThemePreference] = useState<'system' | 'light' | 'dark'>('system');
-  const [systemIsLight, setSystemIsLight] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: light)').matches;
-    }
-    return false;
-  });
+  // Theme preference: 'light' | 'dark'
+  const [themePreference, setThemePreference] = useState<'light' | 'dark'>('light');
   const [showAddForm, setShowAddForm] = useState(false);
   // Nomes adicionados nesta sessão (para esconder do painel de pré-salvos, sem apagar do localStorage)
   const [addedThisSession, setAddedThisSession] = useState<string[]>([]);
@@ -267,17 +261,9 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [activeEvent]);
 
-  // Detect system color scheme preference
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: light)');
-    const handler = (e: MediaQueryListEvent) => setSystemIsLight(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-
   // Sync body background for light mode
   useEffect(() => {
-    const isLight = themePreference === 'system' ? systemIsLight : themePreference === 'light';
+    const isLight = themePreference === 'light';
     if (isLight) {
       document.body.style.background = '#f1f5f9';
       document.body.style.color = '#0f172a';
@@ -285,7 +271,7 @@ export default function Home() {
       document.body.style.background = '';
       document.body.style.color = '';
     }
-  }, [systemIsLight, themePreference]);
+  }, [themePreference]);
 
   // Focus input and scroll when form appears
   useEffect(() => {
@@ -441,7 +427,7 @@ export default function Home() {
   };
 
   // Compute effective theme
-  const effectiveLight = themePreference === 'system' ? systemIsLight : themePreference === 'light';
+  const effectiveLight = themePreference === 'light';
 
   // Lista de nomes ocultos (configurados pelo admin)
   const nomesOcultosArr = config?.nomes_ocultos
@@ -987,19 +973,17 @@ export default function Home() {
           {/* Theme Toggle */}
           <div className="flex flex-col items-center gap-2 mt-4">
             <button
-              onClick={() => setThemePreference(prev => prev === 'system' ? 'light' : prev === 'light' ? 'dark' : 'system')}
+              onClick={() => setThemePreference(prev => prev === 'light' ? 'dark' : 'light')}
               className="inline-flex items-center gap-1.5 text-[10px] font-mono tracking-wider uppercase text-white/40 hover:text-white/70 transition-colors bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full border border-white/10 cursor-pointer"
-              title={`Tema: ${themePreference === 'system' ? 'Sistema' : themePreference === 'light' ? 'Claro' : 'Escuro'}`}
+              title={`Tema: ${themePreference === 'light' ? 'Claro' : 'Escuro'}`}
             >
               <span className="font-mono tracking-widest text-white/30 mr-0.5">Tema</span>
-              {themePreference === 'system' ? (
-                <Monitor size={12} />
-              ) : themePreference === 'light' ? (
+              {themePreference === 'light' ? (
                 <Sun size={12} />
               ) : (
                 <Moon size={12} />
               )}
-              {themePreference === 'system' ? 'Sistema' : themePreference === 'light' ? 'Claro' : 'Escuro'}
+              {themePreference === 'light' ? 'Claro' : 'Escuro'}
             </button>
           </div>
 
