@@ -1015,16 +1015,25 @@ export default function Home() {
       <AnimatePresence>
         {toast && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className={`fixed bottom-4 right-4 z-50 text-xs font-bold px-4 py-3 rounded-xl shadow-lg border flex items-center gap-1.5 ${toast.type === 'success'
-              ? 'bg-emerald-950/80 text-emerald-250 border-emerald-500/30 backdrop-blur-md'
-              : 'bg-red-950/80 text-red-250 border-red-500/30 backdrop-blur-md'
-              }`}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 text-xs font-bold px-4 py-3 rounded-xl shadow-lg border flex items-center gap-1.5 ${
+              effectiveLight
+                ? toast.type === 'success'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200 shadow-emerald-500/5'
+                  : 'bg-red-50 text-red-800 border-red-200 shadow-red-500/5'
+                : toast.type === 'success'
+                  ? 'bg-emerald-950/80 text-emerald-250 border-emerald-500/30 backdrop-blur-md'
+                  : 'bg-red-950/80 text-red-250 border-red-500/30 backdrop-blur-md'
+            }`}
             id="toast-notification"
           >
-            <span className={`h-1.5 w-1.5 rounded-full ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'}`}></span>
+            <span className={`h-1.5 w-1.5 rounded-full ${
+              effectiveLight
+                ? toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+                : toast.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'
+            }`}></span>
             {toast.message}
           </motion.div>
         )}
