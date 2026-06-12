@@ -472,7 +472,7 @@ export default function Home() {
 
       {/* Banner - full width no top spacing on mobile */}
       <div className="w-full relative mb-10 md:mb-16" id="main-banner-layout">
-        <div className="w-full h-44 sm:h-52 md:h-64 rounded-none md:rounded-xl md:mx-auto md:max-w-[600px] overflow-hidden relative border-0 md:border border-white/10 shadow-2xl">
+        <div className="w-full h-44 sm:h-52 md:h-64 md:mx-auto md:max-w-[600px] overflow-hidden relative">
           {config?.banner_url ? (
             <img
               src={config.banner_url}
@@ -805,10 +805,15 @@ export default function Home() {
             {/* Unified List layout */}
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl md:rounded-xl overflow-hidden shadow-2xl" id="unified-list-card">
               <div className="bg-white/5 border-b border-white/10 py-3 px-4 flex justify-between items-center">
-                <span className="font-bold text-xs uppercase tracking-widest text-indigo-300 flex items-center gap-1.5">
-                  <Users size={16} /> Lista de Intercessados
-                </span>
-                <span className="bg-indigo-500/20 text-indigo-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full font-mono border border-indigo-500/20">
+                <div className="flex flex-col">
+                  <span className="font-bold text-xs uppercase tracking-widest text-indigo-300 flex items-center gap-1.5">
+                    <Users size={19} /> Lista de participantes
+                  </span>
+                  <span className="text-[10px] text-indigo-200/70 mt-0.5 ml-6">
+                    Pessoas que irão receber as orações
+                  </span>
+                </div>
+                <span className="bg-indigo-500/20 text-indigo-300 text-[12px] font-bold px-2.5 py-0.5 rounded-full font-mono border border-indigo-500/20 shrink-0">
                   {filteredParticipants.length} {filteredParticipants.length === 1 ? 'nome' : 'nomes'}
                 </span>
               </div>

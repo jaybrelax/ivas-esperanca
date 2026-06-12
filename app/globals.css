@@ -234,10 +234,10 @@ button, label {
   --lm-border-strong: #d0cee0;
 }
 
-/* Body */
-#public-main-root.light-mode ~ body,
+/* Body and Root container */
 #public-main-root.light-mode {
   background: #f5f4f8 !important;
+  color: #1a1a2e !important;
 }
 
 /* Title gradient in light mode */
@@ -258,105 +258,111 @@ button, label {
 }
 
 /* ───── TEXTOS ───── */
-#public-main-root.light-mode [class*="text-white"]:not([class*="hover"]):not([class*="text-white/"]):not([id="btn-adicionar-novo-nome"]) {
+/* General text replacements for white/light text classes */
+#public-main-root.light-mode .text-white,
+#public-main-root.light-mode .text-white\/90,
+#public-main-root.light-mode .text-white\/85,
+#public-main-root.light-mode .text-white\/80,
+#public-main-root.light-mode .text-white\/75,
+#public-main-root.light-mode .text-white\/70 {
   color: #1a1a2e !important;
 }
-#public-main-root.light-mode [class*="text-white/90"] {
-  color: #1a1a2e !important;
-}
-#public-main-root.light-mode [class*="text-white/60"] {
-  color: #5a5a7a !important;
-}
-#public-main-root.light-mode [class*="text-white/55"] {
-  color: #5a5a7a !important;
-}
-#public-main-root.light-mode [class*="text-white/50"] {
-  color: #5a5a7a !important;
-}
-#public-main-root.light-mode [class*="text-white/40"],
-#public-main-root.light-mode [class*="text-white/30"] {
-  color: #9494b0 !important;
-}
-#public-main-root.light-mode [class*="text-white/20"] {
-  color: rgba(0, 0, 0, 0.12) !important;
-}
-#public-main-root.light-mode [class*="text-indigo-200"],
+
+#public-main-root.light-mode .text-white\/60,
+#public-main-root.light-mode .text-white\/55,
+#public-main-root.light-mode .text-white\/50,
+#public-main-root.light-mode .text-indigo-200,
 #public-main-root.light-mode .text-indigo-200\/80,
 #public-main-root.light-mode .text-indigo-200\/60 {
   color: #5a5a7a !important;
 }
-#public-main-root.light-mode [class*="text-indigo-300"]:not([class*="bg"]):not([class*="text-indigo-300/80"]):not([class*="text-indigo-300/60"]) {
+
+#public-main-root.light-mode .text-indigo-300,
+#public-main-root.light-mode .text-indigo-400 {
   color: #6c5ce7 !important;
 }
-#public-main-root.light-mode .text-indigo-300\/80 {
-  color: #6c5ce7 !important;
+
+#public-main-root.light-mode .text-white\/40,
+#public-main-root.light-mode .text-white\/30,
+#public-main-root.light-mode .text-indigo-200\/50,
+#public-main-root.light-mode .text-indigo-200\/65 {
+  color: #9494b0 !important;
 }
-#public-main-root.light-mode .text-indigo-300\/60 {
-  color: #6c5ce7 !important;
+
+#public-main-root.light-mode .text-white\/20 {
+  color: rgba(0, 0, 0, 0.12) !important;
 }
-#public-main-root.light-mode [class*="text-indigo-100"],
-#public-main-root.light-mode [class*="text-indigo-205"],
-#public-main-root.light-mode [class*="text-indigo-250"] {
-  color: #5a5a7a !important;
-}
+
 #public-main-root.light-mode .text-amber-400 {
   color: #d97706 !important;
 }
-#public-main-root.light-mode [class*="text-indigo-200/50"],
-#public-main-root.light-mode [class*="text-indigo-200/65"] {
-  color: #9494b0 !important;
-}
+
 #public-main-root.light-mode .text-emerald-300,
 #public-main-root.light-mode .text-emerald-500 {
   color: #059669 !important;
 }
 
-/* ───── CARDS ───── */
-#public-main-root.light-mode [class*="bg-white/5"],
-#public-main-root.light-mode [class*="bg-white/10"],
-#public-main-root.light-mode [class*="bg-white/15"] {
-  background: #ffffff !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+/* Keep action buttons and main submit button white text */
+#public-main-root.light-mode #btn-adicionar-novo-nome,
+#public-main-root.light-mode #btn-confirmar-presenca,
+#public-main-root.light-mode #btn-adicionar-novo-nome *,
+#public-main-root.light-mode #btn-confirmar-presenca *,
+#public-main-root.light-mode .bg-indigo-600,
+#public-main-root.light-mode .bg-indigo-600 * {
+  color: #ffffff !important;
 }
-#public-main-root.light-mode [class*="bg-black/40"],
-#public-main-root.light-mode [class*="bg-black/50"],
-#public-main-root.light-mode [class*="bg-black/60"],
-#public-main-root.light-mode [class*="bg-black/70"] {
+
+/* ───── CARDS ───── */
+#public-main-root.light-mode .bg-white\/5,
+#public-main-root.light-mode .bg-white\/10,
+#public-main-root.light-mode .bg-white\/15 {
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+#public-main-root.light-mode .bg-black\/40,
+#public-main-root.light-mode .bg-black\/50,
+#public-main-root.light-mode .bg-black\/60,
+#public-main-root.light-mode .bg-black\/70 {
   background: #f0eef4 !important;
 }
-#public-main-root.light-mode [class*="bg-indigo-600/30"],
-#public-main-root.light-mode [class*="bg-indigo-500/20"],
-#public-main-root.light-mode [class*="bg-indigo-600/40"] {
+
+#public-main-root.light-mode .bg-indigo-600\/30,
+#public-main-root.light-mode .bg-indigo-500\/20,
+#public-main-root.light-mode .bg-indigo-600\/40 {
   background: rgba(108, 92, 231, 0.07) !important;
 }
-#public-main-root.light-mode [class*="bg-indigo-950"],
-#public-main-root.light-mode [class*="from-indigo-950"] {
+
+#public-main-root.light-mode .bg-indigo-950,
+#public-main-root.light-mode .from-indigo-950 {
   background: #eeebf6 !important;
 }
-#public-main-root.light-mode [class*="from-indigo-950"],
-#public-main-root.light-mode [class*="via-slate-900"],
-#public-main-root.light-mode [class*="to-indigo-950"] {
-  background: linear-gradient(to right, #e6e1f5, #f5f4f8, #e6e1f5) !important;
+
+#public-main-root.light-mode .from-indigo-950,
+#public-main-root.light-mode .via-slate-900,
+#public-main-root.light-mode .to-indigo-950 {
+  background: #eeebf6 !important;
+  background-image: none !important;
 }
-#public-main-root.light-mode [class*="bg-indigo-500/20"] {
-  background: rgba(108, 92, 231, 0.07) !important;
-}
-#public-main-root.light-mode [id="guest-list-container"] [class*="bg-indigo-500/20"] {
+
+#public-main-root.light-mode #guest-list-container .bg-indigo-500\/20 {
   background: rgba(108, 92, 231, 0.08) !important;
 }
 
 /* ───── BORDAS ───── */
-#public-main-root.light-mode [class*="border-white/10"],
-#public-main-root.light-mode [class*="border-white/20"],
-#public-main-root.light-mode [class*="border-white/30"] {
+#public-main-root.light-mode .border-white\/10,
+#public-main-root.light-mode .border-white\/20,
+#public-main-root.light-mode .border-white\/30 {
   border-color: #e2e0e8 !important;
 }
-#public-main-root.light-mode [class*="border-indigo-500/20"],
-#public-main-root.light-mode [class*="border-indigo-500/30"],
-#public-main-root.light-mode [class*="border-indigo-500/40"] {
+
+#public-main-root.light-mode .border-indigo-500\/20,
+#public-main-root.light-mode .border-indigo-500\/30,
+#public-main-root.light-mode .border-indigo-500\/40 {
   border-color: rgba(108, 92, 231, 0.22) !important;
 }
-#public-main-root.light-mode [class*="border-dashed"] {
+
+#public-main-root.light-mode .border-dashed {
   border-color: rgba(108, 92, 231, 0.18) !important;
 }
 
@@ -374,17 +380,17 @@ button, label {
   background: transparent !important;
 }
 #public-main-root.light-mode input::placeholder {
-  color: #e0e0f0 !important;
-  opacity: 0.35 !important;
+  color: #9494b0 !important;
+  opacity: 0.6 !important;
 }
 #public-main-root.light-mode input,
-#public-main-root.light-mode input[class*="text-white"] {
-  color: #4f46e5 !important;
-  -webkit-text-fill-color: #4f46e5 !important;
+#public-main-root.light-mode input.text-white {
+  color: #1a1a2e !important;
+  -webkit-text-fill-color: #1a1a2e !important;
 }
 
 /* ───── METRICS ───── */
-#public-main-root.light-mode [class*="from-indigo-600/20"] {
+#public-main-root.light-mode .from-indigo-600\/20 {
   background: linear-gradient(to bottom, rgba(108, 92, 231, 0.08), rgba(108, 92, 231, 0.02)) !important;
   border-top-color: rgba(0, 0, 0, 0.06) !important;
   border-right-color: rgba(0, 0, 0, 0.06) !important;
@@ -392,7 +398,7 @@ button, label {
   border-bottom: 3px solid rgba(108, 92, 231, 0.3) !important;
   box-shadow: none !important;
 }
-#public-main-root.light-mode [class*="from-blue-600/20"] {
+#public-main-root.light-mode .from-blue-600\/20 {
   background: linear-gradient(to bottom, rgba(37, 99, 235, 0.08), rgba(37, 99, 235, 0.02)) !important;
   border-top-color: rgba(0, 0, 0, 0.06) !important;
   border-right-color: rgba(0, 0, 0, 0.06) !important;
@@ -400,7 +406,7 @@ button, label {
   border-bottom: 3px solid rgba(37, 99, 235, 0.3) !important;
   box-shadow: none !important;
 }
-#public-main-root.light-mode [class*="from-pink-600/20"] {
+#public-main-root.light-mode .from-pink-600\/20 {
   background: linear-gradient(to bottom, rgba(219, 39, 119, 0.08), rgba(219, 39, 119, 0.02)) !important;
   border-top-color: rgba(0, 0, 0, 0.06) !important;
   border-right-color: rgba(0, 0, 0, 0.06) !important;
@@ -408,91 +414,92 @@ button, label {
   border-bottom: 3px solid rgba(219, 39, 119, 0.3) !important;
   box-shadow: none !important;
 }
-#public-main-root.light-mode [class*="text-blue-300/80"] {
+#public-main-root.light-mode .text-blue-300\/80 {
   color: #2563eb !important;
 }
-#public-main-root.light-mode [class*="text-pink-300/80"] {
+#public-main-root.light-mode .text-pink-300\/80 {
   color: #db2777 !important;
 }
 
 /* ───── COUNTDOWN ───── */
-#public-main-root.light-mode [id="countdown-grid"] {
+#public-main-root.light-mode #countdown-grid {
   background: #ffffff !important;
+  background-image: none !important;
   border-color: #e2e0e8 !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }
-#public-main-root.light-mode [id="countdown-grid"] .tabular-nums {
-  color: #1a1a2e !important;
-}
-#public-main-root.light-mode [id="countdown-grid"] [class*="text-indigo-300"],
-#public-main-root.light-mode [id="countdown-grid"] [class*="text-indigo-400"] {
+#public-main-root.light-mode #countdown-grid .tabular-nums {
   color: #6c5ce7 !important;
 }
-#public-main-root.light-mode [id="countdown-grid"] [class*="text-indigo-300/60"],
-#public-main-root.light-mode [id="countdown-grid"] [class*="text-white/40"] {
+#public-main-root.light-mode #countdown-grid .text-indigo-300,
+#public-main-root.light-mode #countdown-grid .text-indigo-400 {
+  color: #6c5ce7 !important;
+}
+#public-main-root.light-mode #countdown-grid .text-indigo-300\/80,
+#public-main-root.light-mode #countdown-grid .text-white\/40 {
   color: #5a5a7a !important;
 }
 
 /* ───── GENDER SELECTION ───── */
-#public-main-root.light-mode [id="gender-selection-grid"] label {
-  border-color: rgba(0, 0, 0, 0.06) !important;
-  color: #9494b0 !important;
-  background: transparent !important;
+#public-main-root.light-mode #gender-selection-grid label {
+  border-color: #e2e0e8 !important;
+  color: #5a5a7a !important;
+  background: #ffffff !important;
   transition: all 0.15s ease;
 }
-#public-main-root.light-mode [id="gender-selection-grid"] label:has(input[value="M"]:checked) {
+#public-main-root.light-mode #gender-selection-grid label:has(input[value="M"]:checked) {
   color: #3b82f6 !important;
-  background: transparent !important;
-  border: 3px solid #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+  border: 2px solid #3b82f6 !important;
 }
-#public-main-root.light-mode [id="gender-selection-grid"] label:has(input[value="F"]:checked) {
+#public-main-root.light-mode #gender-selection-grid label:has(input[value="F"]:checked) {
   color: #ec4899 !important;
-  background: transparent !important;
-  border: 3px solid #ec4899 !important;
+  background: rgba(236, 72, 153, 0.08) !important;
+  border: 2px solid #ec4899 !important;
 }
 
 /* ───── FOOTER ───── */
-#public-main-root.light-mode [id="brand-footer"] {
+#public-main-root.light-mode #brand-footer {
   border-color: #e2e0e8 !important;
   background: #ffffff !important;
 }
-#public-main-root.light-mode [id="brand-footer"] [class*="text-white/55"],
-#public-main-root.light-mode [id="brand-footer"] [class*="text-indigo-200/80"],
+#public-main-root.light-mode #brand-footer .text-white\/55,
+#public-main-root.light-mode #brand-footer .text-indigo-200\/80,
 #public-main-root.light-mode #copyright-text {
   color: #5a5a7a !important;
 }
-#public-main-root.light-mode [id="brand-footer"] h2 {
+#public-main-root.light-mode #brand-footer h2 {
   color: #1a1a2e !important;
 }
 
 /* ───── QUICK ADD ───── */
-#public-main-root.light-mode [id="quick-add-panel"] [class*="text-indigo-300"] {
+#public-main-root.light-mode #quick-add-panel .text-indigo-300 {
   color: #6c5ce7 !important;
 }
-#public-main-root.light-mode [id="quick-add-panel"] button {
+#public-main-root.light-mode #quick-add-panel button {
   color: #5a5a7a !important;
   border-color: #e2e0e8 !important;
   background: #ffffff !important;
 }
-#public-main-root.light-mode [id="quick-add-panel"] button:hover {
+#public-main-root.light-mode #quick-add-panel button:hover {
   background: #f5f4f8 !important;
   border-color: #d0cee0 !important;
 }
-#public-main-root.light-mode [id="registration-form-card"] .rounded-full {
+#public-main-root.light-mode #registration-form-card .rounded-full {
   color: #5a5a7a !important;
   border-color: #e2e0e8 !important;
   background: #ffffff !important;
 }
-#public-main-root.light-mode [id="registration-form-card"] .rounded-full:hover {
+#public-main-root.light-mode #registration-form-card .rounded-full:hover {
   background: #f5f4f8 !important;
   border-color: #d0cee0 !important;
 }
 
 /* ───── LISTA ───── */
-#public-main-root.light-mode [id="guest-list-container"] [class*="text-indigo-300"] {
+#public-main-root.light-mode #guest-list-container .text-indigo-300 {
   color: #6c5ce7 !important;
 }
-#public-main-root.light-mode [id="guest-list-container"] .text-white\/30 {
+#public-main-root.light-mode #guest-list-container .text-white\/30 {
   color: #9494b0 !important;
 }
 
@@ -509,25 +516,25 @@ button, label {
 }
 
 /* Date/time card */
-#public-main-root.light-mode [id="main-header"] .bg-emerald-500\/20 {
+#public-main-root.light-mode #main-header .bg-emerald-500\/20 {
   background: rgba(5, 150, 105, 0.08) !important;
   border-color: rgba(5, 150, 105, 0.2) !important;
 }
-#public-main-root.light-mode [id="main-header"] [class*="text-emerald-400"] {
+#public-main-root.light-mode #main-header .text-emerald-400 {
   color: rgba(5, 150, 105, 0.6) !important;
 }
-#public-main-root.light-mode [id="main-header"] [class*="text-white"]:not([class*="text-white/"]) {
+#public-main-root.light-mode #main-header .text-white {
   color: #065f46 !important;
 }
-#public-main-root.light-mode [id="main-header"] [class*="text-white/40"] {
+#public-main-root.light-mode #main-header .text-white\/40 {
   color: rgba(6, 95, 70, 0.25) !important;
 }
 
 /* ───── MODAL ───── */
-#public-main-root.light-mode [class*="bg-slate-950"] {
+#public-main-root.light-mode .bg-slate-955 {
   background: rgba(245, 244, 248, 0.85) !important;
 }
-#public-main-root.light-mode [class*="bg-[#0b1220]"] {
+#public-main-root.light-mode .bg-\[\#0b1220\] {
   background: #ffffff !important;
 }
 
@@ -535,12 +542,12 @@ button, label {
 #public-main-root.light-mode .text-red-400 {
   color: #dc2626;
 }
-#public-main-root.light-mode [class*="hover:text-white"]:hover {
+#public-main-root.light-mode .hover\:text-white:hover {
   color: #ffffff !important;
 }
-#public-main-root.light-mode [class*="hover:bg-red-500"]:hover {
+#public-main-root.light-mode .hover\:bg-red-500:hover {
   background: rgba(220, 38, 38, 0.7) !important;
 }
-#public-main-root.light-mode [class*="hover:bg-indigo-500"]:hover {
+#public-main-root.light-mode .hover\:bg-indigo-500:hover {
   background: rgba(108, 92, 231, 0.15) !important;
 }
