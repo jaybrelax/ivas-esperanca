@@ -261,7 +261,17 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [activeEvent]);
 
-  // Sync body background for light mode
+  // Load theme preference from localStorage on mount (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme_preference') as 'light' | 'dark' | null;
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        setThemePreference(savedTheme);
+      }
+    }
+  }, []);
+
+  // Sync body background and persist theme preference to localStorage
   useEffect(() => {
     const isLight = themePreference === 'light';
     if (isLight) {
@@ -270,6 +280,9 @@ export default function Home() {
     } else {
       document.body.style.background = '';
       document.body.style.color = '';
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme_preference', themePreference);
     }
   }, [themePreference]);
 
@@ -795,7 +808,7 @@ export default function Home() {
                   <span className="font-bold text-xs uppercase tracking-widest text-indigo-300 flex items-center gap-1.5">
                     <Users size={19} /> Lista de participantes
                   </span>
-                  <span className="text-[10px] text-indigo-200/70 mt-0.5 ml-6">
+                  <span className="text-xs text-indigo-200 mt-0.5 ml-6.5 font-medium">
                     Pessoas que irão receber as orações
                   </span>
                 </div>
