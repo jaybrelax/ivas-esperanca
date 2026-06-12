@@ -817,7 +817,7 @@ export default function Home() {
                 </span>
               </div>
 
-              <div className="p-1.5 space-y-1 divide-y divide-white/5">
+              <div className="p-1.5 space-y-0 divide-y divide-white/5">
                 {filteredParticipants.length > 0 ? (
                   (() => {
                     // devId e nomesOcultosArr já computados no nível do componente
@@ -831,7 +831,7 @@ export default function Home() {
                       const isMine = p.device_id === devId;
                       const isOculto = nomesOcultosArr.includes(p.nome.trim().toLowerCase());
                       return (
-                        <div key={p.id} className="group flex justify-between items-center py-2.5 px-3 md:py-3 md:px-4 hover:bg-white/5 rounded-lg duration-150 transition-colors">
+                        <div key={p.id} className="group flex justify-between items-center py-1.5 px-3 md:py-1.5 md:px-4 hover:bg-white/5 rounded-lg duration-150 transition-colors">
                           <div className="flex items-center gap-2 pr-2 overflow-hidden">
                             <span className="text-white/30 font-mono text-xs w-4 text-right flex-shrink-0">{index + 1}.</span>
                             <span className={`flex-shrink-0 font-black text-sm ${p.sexo === 'F' ? 'text-pink-400' : 'text-blue-400'}`} title={p.sexo === 'F' ? 'Feminino' : 'Masculino'}>
