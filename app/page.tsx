@@ -696,11 +696,13 @@ export default function Home() {
                     <div className="flex items-center gap-3">
                       {savedNames.some(item => !addedThisSession.includes(item.nome.toLowerCase()) && !activeEvent?.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())) && (
                         <button
+                          id="btn-adicionar-todos"
                           onClick={handleRegisterAllSaved}
-                          className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1 rounded-md border border-indigo-500/25 cursor-pointer"
+                          className="text-[10px] font-bold text-white transition-all bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg border border-indigo-400/30 cursor-pointer flex items-center gap-1 shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/25 active:scale-95"
                           title="Adicionar todos os nomes pré-salvos"
                         >
-                          Adicionar Todos
+                          <Zap size={10} className="fill-white" />
+                          <span>Adicionar Todos</span>
                         </button>
                       )}
                       <button

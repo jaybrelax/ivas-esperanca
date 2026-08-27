@@ -489,6 +489,19 @@ button, label {
   background: #f5f4f8 !important;
   border-color: #d0cee0 !important;
 }
+#public-main-root.light-mode #quick-add-panel button#btn-adicionar-todos {
+  color: #ffffff !important;
+  background: #6c5ce7 !important;
+  border-color: rgba(108, 92, 231, 0.3) !important;
+}
+#public-main-root.light-mode #quick-add-panel button#btn-adicionar-todos:hover {
+  background: #5b4bc4 !important;
+  box-shadow: 0 2px 8px rgba(91, 75, 196, 0.25) !important;
+}
+#public-main-root.light-mode #quick-add-panel button#btn-adicionar-todos svg {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
 #public-main-root.light-mode #registration-form-card .rounded-full {
   color: #5a5a7a !important;
   border-color: #e2e0e8 !important;
