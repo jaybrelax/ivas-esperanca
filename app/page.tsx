@@ -693,28 +693,27 @@ export default function Home() {
                       <Zap size={14} className="text-amber-500 fill-amber-500" />
                       Seus NOMES Pré-Salvos (1 clique)
                     </span>
-                    <div className="flex items-center gap-3">
-                      {savedNames.some(item => !addedThisSession.includes(item.nome.toLowerCase()) && !activeEvent?.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())) && (
-                        <button
-                          id="btn-adicionar-todos"
-                          onClick={handleRegisterAllSaved}
-                          className="text-[10px] font-bold text-white transition-all bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg border border-indigo-400/30 cursor-pointer flex items-center gap-1 shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/25 active:scale-95"
-                          title="Adicionar todos os nomes pré-salvos"
-                        >
-                          <Zap size={10} className="fill-white" />
-                          <span>Adicionar Todos</span>
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setShowClearConfirm(true)}
-                        className="text-[10px] text-white/40 hover:text-red-400 transition-colors cursor-pointer"
-                        title="Limpar sugestões locais"
-                      >
-                        Limpar sugestões
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => setShowClearConfirm(true)}
+                      className="text-[10px] text-white/40 hover:text-red-400 transition-colors cursor-pointer"
+                      title="Limpar sugestões locais"
+                    >
+                      Limpar sugestões
+                    </button>
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    {savedNames.some(item => !addedThisSession.includes(item.nome.toLowerCase()) && !activeEvent?.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())) && (
+                      <button
+                        id="btn-adicionar-todos"
+                        onClick={handleRegisterAllSaved}
+                        className="btn-add-all rounded-full px-4 py-2 text-xs flex items-center gap-2 transition-all text-indigo-400 font-bold cursor-pointer active:scale-95 hover:text-indigo-300 border-0"
+                        title="Adicionar todos os nomes pré-salvos de uma vez"
+                      >
+                        <span className="btn-shimmer-inner" />
+                        <Zap size={11} className="text-indigo-400 fill-indigo-400 relative z-10" />
+                        <span className="uppercase relative z-10">Adicionar Todos</span>
+                      </button>
+                    )}
                     {savedNames.filter(item => !addedThisSession.includes(item.nome.toLowerCase()) && !activeEvent?.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())).map((item, idx) => (
                       <button
                         key={idx}
