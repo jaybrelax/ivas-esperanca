@@ -52,7 +52,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
+      setTimeout(() => {
+        setIsInstalled(true);
+      }, 0);
     }
     const handler = (e: Event) => {
       e.preventDefault();
@@ -141,9 +143,13 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (filterType === 'M' || filterType === 'F') {
-      setAdminAddSexo(filterType);
+      setTimeout(() => {
+        setAdminAddSexo(filterType);
+      }, 0);
     } else {
-      setAdminAddSexo(null);
+      setTimeout(() => {
+        setAdminAddSexo(null);
+      }, 0);
     }
   }, [filterType]);
 
@@ -178,10 +184,10 @@ export default function AdminDashboard() {
     return new Date() >= dt;
   })();
 
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  function showToast(message: string, type: 'success' | 'error' = 'success') {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
-  };
+  }
 
   // Upload image to Supabase Storage bucket "img"
   const handleImageUpload = async (file: File, setter: (url: string) => void) => {
@@ -258,8 +264,10 @@ export default function AdminDashboard() {
   // Auto-close create event form when button is not allowed
   useEffect(() => {
     if (!showCreateButton) {
-      setShowCreateEventForm(false);
-      setIsEditingEvent(false);
+      setTimeout(() => {
+        setShowCreateEventForm(false);
+        setIsEditingEvent(false);
+      }, 0);
     }
   }, [showCreateButton]);
 

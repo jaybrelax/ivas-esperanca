@@ -30,6 +30,7 @@ export interface ConfigMarca {
   light_mode?: boolean;
   nomes_ocultos?: string;
   link_reuniao?: string;
+  recesso?: boolean;
 }
 
 // Default values for brand configuration
@@ -43,7 +44,8 @@ export const DEFAULT_CONFIG: ConfigMarca = {
   nomes_fixo: [],
   light_mode: false,
   nomes_ocultos: "",
-  link_reuniao: ""
+  link_reuniao: "",
+  recesso: false
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -270,6 +272,7 @@ export async function fetchBrandingConfig(): Promise<ConfigMarca> {
               light_mode: data.light_mode || false,
               nomes_ocultos: data.nomes_ocultos || "",
               link_reuniao: data.link_reuniao || "",
+              recesso: data.recesso || false,
             };
           }
           return getLocalConfig();
@@ -312,6 +315,7 @@ export async function saveBrandingConfig(config: ConfigMarca): Promise<boolean> 
               light_mode: config.light_mode,
               nomes_ocultos: config.nomes_ocultos,
               link_reuniao: config.link_reuniao,
+              recesso: config.recesso,
               updated_at: new Date().toISOString()
             })
             .eq('id', 'default');
@@ -329,7 +333,8 @@ export async function saveBrandingConfig(config: ConfigMarca): Promise<boolean> 
               nomes_fixo: config.nomes_fixo || [],
               light_mode: config.light_mode || false,
               nomes_ocultos: config.nomes_ocultos || "",
-              link_reuniao: config.link_reuniao || ""
+              link_reuniao: config.link_reuniao || "",
+              recesso: config.recesso || false
             });
         }
         
@@ -500,6 +505,49 @@ export async function addParticipantToEvento(eventoId: string, name: string, gen
   
   // Automatically order alphabetically right before saving
   const newNomesList = [...target.nomes, newParticipant].sort((a, b) => 
+    a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })
+  );
+  
+  const updatedEvent = {
+    ...target,
+    nomes: newNomesList
+  };
+  
+  return await saveEvento(updatedEvent);
+}
+
+// Add multiple participants to an event at once
+export async function addParticipantsToEvento(eventoId: string, participants: { nome: string; sexo: 'M' | 'F' }[], deviceId: string): Promise<Evento | null> {
+  const events = await listAllEventos();
+  const target = events.find(e => e.id === eventoId);
+  if (!target) return null;
+  
+  const validNewParticipants: Participant[] = [];
+  
+  for (const p of participants) {
+    const formattedName = p.nome.trim();
+    if (!formattedName) continue;
+    
+    // Avoid duplicate names in the same list (case insensitive verification)
+    const isDuplicate = target.nomes.some(n => n.nome.toLowerCase() === formattedName.toLowerCase()) ||
+                        validNewParticipants.some(n => n.nome.toLowerCase() === formattedName.toLowerCase());
+    if (isDuplicate) continue;
+    
+    validNewParticipants.push({
+      id: generateId(),
+      nome: formattedName,
+      sexo: p.sexo,
+      criado_em: new Date().toISOString(),
+      device_id: deviceId
+    });
+  }
+  
+  if (validNewParticipants.length === 0) {
+    return target;
+  }
+  
+  // Automatically order alphabetically right before saving
+  const newNomesList = [...target.nomes, ...validNewParticipants].sort((a, b) => 
     a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })
   );
   

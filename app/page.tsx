@@ -31,6 +31,7 @@ import {
   listAllEventos,
   getNextActiveEvento,
   addParticipantToEvento,
+  addParticipantsToEvento,
   removeParticipantFromEvento,
   editParticipantInEvento,
   isSupabaseConfigured,
@@ -270,7 +271,9 @@ export default function Home() {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme_preference') as 'light' | 'dark' | null;
       if (savedTheme === 'light' || savedTheme === 'dark') {
-        setThemePreference(savedTheme);
+        setTimeout(() => {
+          setThemePreference(savedTheme);
+        }, 0);
       }
     }
   }, []);
@@ -390,6 +393,37 @@ export default function Home() {
     }
   };
 
+  // Add all pre-saved names that are not yet added
+  const handleRegisterAllSaved = async () => {
+    if (!activeEvent) return;
+
+    // Filter names that are not yet in the active event and not added in this session
+    const pendingNames = savedNames.filter(
+      item => !addedThisSession.includes(item.nome.toLowerCase()) && 
+              !activeEvent.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())
+    );
+
+    if (pendingNames.length === 0) {
+      showToast("Não há novos nomes para adicionar.", "error");
+      return;
+    }
+
+    try {
+      const updated = await addParticipantsToEvento(activeEvent.id, pendingNames, devId || 'device');
+      if (updated) {
+        setActiveEvent(updated);
+        // Add all these names to addedThisSession so they disappear from the pre-saved suggestions
+        const newAddedList = pendingNames.map(p => p.nome.toLowerCase());
+        setAddedThisSession(prev => [...prev, ...newAddedList]);
+        showToast(`✅ ${pendingNames.length} nomes adicionados de uma vez!`, "success");
+        // Scroll to pre-saved panel top
+        savedNamesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } catch (err: any) {
+      showToast(err.message || "Erro ao adicionar todos os nomes.", "error");
+    }
+  };
+
   // Trigger editing a participant
   const handleStartEdit = (p: Participant) => {
     setEditingParticipant(p);
@@ -423,10 +457,15 @@ export default function Home() {
   const confirmDeleteParticipant = async (pId: string) => {
     if (!activeEvent) return;
 
+    const participantToRemove = activeEvent.nomes.find(n => n.id === pId);
+
     try {
       const updated = await removeParticipantFromEvento(activeEvent.id, pId);
       if (updated) {
         setActiveEvent(updated);
+        if (participantToRemove) {
+          setAddedThisSession(prev => prev.filter(name => name !== participantToRemove.nome.toLowerCase()));
+        }
         showToast("Registro removido com sucesso.", "success");
       }
     } catch (err: any) {
@@ -551,9 +590,20 @@ export default function Home() {
           )}
         </header>
 
-        {/* Live Countdown Card */}
-        {activeEvent && (
-          <div className="mb-8 md:mb-10 animate-fade-in-up" id="countdown-card" style={{ animationDelay: '0.1s' }}>
+        {config?.recesso ? (
+          <div className="bg-amber-500/10 border border-amber-500/20 backdrop-blur-md text-amber-200 p-6 md:p-8 rounded-xl shadow-lg text-center mx-auto mb-8 md:mb-12 animate-fade-in-up">
+            <Moon size={36} className="mx-auto mb-4 text-amber-400" />
+            <h2 className="text-lg md:text-xl font-bold mb-2 uppercase tracking-widest text-amber-300">Modo Recesso</h2>
+            <p className="text-sm md:text-base text-amber-200/80">
+              As atividades da cadeia de oração estão temporariamente suspensas. 
+              Voltaremos em breve com as nossas listas semanais.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Live Countdown Card */}
+            {activeEvent && (
+              <div className="mb-8 md:mb-10 animate-fade-in-up" id="countdown-card" style={{ animationDelay: '0.1s' }}>
             {!countdown.isOver && (
               <h2 className="text-center text-[10px] md:text-xs font-semibold uppercase tracking-widest text-indigo-300 mb-3">CONTAGEM REGRESSIVA PARA A ORAÇÃO</h2>
             )}
@@ -643,13 +693,24 @@ export default function Home() {
                       <Zap size={14} className="text-amber-500 fill-amber-500" />
                       Seus NOMES Pré-Salvos (1 clique)
                     </span>
-                    <button
-                      onClick={() => setShowClearConfirm(true)}
-                      className="text-[10px] text-white/40 hover:text-red-400 transition-colors"
-                      title="Limpar sugestões locais"
-                    >
-                      Limpar sugestões
-                    </button>
+                    <div className="flex items-center gap-3">
+                      {savedNames.some(item => !addedThisSession.includes(item.nome.toLowerCase()) && !activeEvent?.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())) && (
+                        <button
+                          onClick={handleRegisterAllSaved}
+                          className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1 rounded-md border border-indigo-500/25 cursor-pointer"
+                          title="Adicionar todos os nomes pré-salvos"
+                        >
+                          Adicionar Todos
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setShowClearConfirm(true)}
+                        className="text-[10px] text-white/40 hover:text-red-400 transition-colors cursor-pointer"
+                        title="Limpar sugestões locais"
+                      >
+                        Limpar sugestões
+                      </button>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {savedNames.filter(item => !addedThisSession.includes(item.nome.toLowerCase()) && !activeEvent?.nomes.some(n => n.nome.toLowerCase() === item.nome.toLowerCase())).map((item, idx) => (
@@ -808,9 +869,11 @@ export default function Home() {
             <p className="text-indigo-200/65 text-[10px] md:text-xs mt-1">Crie um novo evento no painel administrativo para habilitar o envio de nomes.</p>
           </div>
         )}
+        </>
+        )}
 
         {/* Live List Registry Title & Search */}
-        {activeEvent && (
+        {!config?.recesso && activeEvent && (
           <div className="mb-8 animate-fade-in-up" id="guest-list-container" style={{ animationDelay: '0.25s' }}>
             {/* Unified List layout */}
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl md:rounded-xl overflow-hidden shadow-2xl" id="unified-list-card">

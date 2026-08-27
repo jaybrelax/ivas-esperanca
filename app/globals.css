@@ -549,16 +549,41 @@ button, label {
   border-color: rgba(245, 158, 11, 0.3) !important;
 }
 
+/* Custom submit / action buttons in light mode */
+#public-main-root.light-mode #btn-confirmar-presenca,
+#public-main-root.light-mode #btn-adicionar-novo-nome {
+  background: #6c5ce7 !important;
+  border-color: rgba(108, 92, 231, 0.3) !important;
+}
+#public-main-root.light-mode #btn-confirmar-presenca:hover,
+#public-main-root.light-mode #btn-adicionar-novo-nome:hover {
+  background: #5b4bc4 !important;
+  box-shadow: 0 4px 12px rgba(91, 75, 196, 0.25) !important;
+}
+
 /* ───── BOTÕES DE AÇÃO (EDITAR/EXCLUIR) ───── */
-#public-main-root.light-mode .text-red-400 {
-  color: #dc2626;
+#public-main-root.light-mode #guest-list-container button.text-red-400 {
+  color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.06) !important;
+  border: 1px solid rgba(220, 38, 38, 0.15) !important;
+  transition: all 0.15s ease !important;
 }
-#public-main-root.light-mode .hover\:text-white:hover {
+#public-main-root.light-mode #guest-list-container button.text-red-400:hover {
   color: #ffffff !important;
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2) !important;
 }
-#public-main-root.light-mode .hover\:bg-red-500:hover {
-  background: rgba(220, 38, 38, 0.7) !important;
+
+#public-main-root.light-mode #guest-list-container button.text-indigo-300 {
+  color: #6c5ce7 !important;
+  background: rgba(108, 92, 231, 0.06) !important;
+  border: 1px solid rgba(108, 92, 231, 0.15) !important;
+  transition: all 0.15s ease !important;
 }
-#public-main-root.light-mode .hover\:bg-indigo-500:hover {
-  background: rgba(108, 92, 231, 0.15) !important;
+#public-main-root.light-mode #guest-list-container button.text-indigo-300:hover {
+  color: #ffffff !important;
+  background: #6c5ce7 !important;
+  border-color: #6c5ce7 !important;
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.2) !important;
 }

@@ -20,7 +20,9 @@ export function PwaInstallPrompt() {
 
     // Detecta se já está instalado como PWA
     if (window.matchMedia('(display-mode: standalone)').matches) {
-      setInstalled(true);
+      setTimeout(() => {
+        setInstalled(true);
+      }, 0);
       return;
     }
 
