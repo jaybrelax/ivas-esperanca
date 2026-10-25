@@ -26,6 +26,8 @@ import {
   Evento,
   ConfigMarca,
   Participant,
+  ParticipantGender,
+  PARTICIPANT_GENDERS,
   DEFAULT_CONFIG,
   fetchBrandingConfig,
   listAllEventos,
@@ -69,10 +71,10 @@ export default function Home() {
 
   // Input fields
   const [inputNome, setInputNome] = useState('');
-  const [inputSexo, setInputSexo] = useState<'M' | 'F' | ''>('');
+  const [inputSexo, setInputSexo] = useState<ParticipantGender | ''>('');
 
   // Pre-saved names in LocalStorage
-  const [savedNames, setSavedNames] = useState<{ nome: string, sexo: 'M' | 'F' }[]>([]);
+  const [savedNames, setSavedNames] = useState<{ nome: string, sexo: ParticipantGender }[]>([]);
 
   // Search filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,7 +82,7 @@ export default function Home() {
   // Editing state
   const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
   const [editNome, setEditNome] = useState('');
-  const [editSexo, setEditSexo] = useState<'M' | 'F'>('M');
+  const [editSexo, setEditSexo] = useState<ParticipantGender>('M');
 
   // Countdown state
   const [countdown, setCountdown] = useState({
@@ -317,12 +319,12 @@ export default function Home() {
       return;
     }
 
-    if (!trimmedNome.includes(' ')) {
+    if (inputSexo !== 'P' && !trimmedNome.includes(' ')) {
       showToast("Por favor, preencha nome e sobrenome.", "error");
       return;
     }
 
-    if (trimmedNome.length < 3) {
+    if (inputSexo !== 'P' && trimmedNome.length < 3) {
       showToast("O nome deve conter pelo menos 3 caracteres.", "error");
       return;
     }
@@ -344,7 +346,7 @@ export default function Home() {
         devId = storedDevId;
       }
 
-      const updated = await addParticipantToEvento(activeEvent.id, trimmedNome, inputSexo as 'M' | 'F', devId);
+      const updated = await addParticipantToEvento(activeEvent.id, trimmedNome, inputSexo, devId);
       if (updated) {
         setActiveEvent(updated);
         setInputNome('');
@@ -355,7 +357,7 @@ export default function Home() {
         // Save to browser list of pre-saved names for Quick Add
         const alreadySaved = savedNames.some(p => p.nome.toLowerCase() === trimmedNome.toLowerCase());
         if (!alreadySaved) {
-          const newSaved = [...savedNames, { nome: trimmedNome, sexo: inputSexo as 'M' | 'F' }].slice(-10); // Keep last 10
+          const newSaved = [...savedNames, { nome: trimmedNome, sexo: inputSexo }].slice(-10); // Keep last 10
           setSavedNames(newSaved);
           if (typeof window !== 'undefined') {
             localStorage.setItem('gestor_eventos_pre_salvos', JSON.stringify(newSaved));
@@ -368,7 +370,7 @@ export default function Home() {
   };
 
   // Quick Action Register with one click
-  const handleQuickRegister = async (pName: string, pSexo: 'M' | 'F') => {
+  const handleQuickRegister = async (pName: string, pSexo: ParticipantGender) => {
     if (!activeEvent) return;
 
     // Check if duplicate on list first
@@ -575,6 +577,12 @@ export default function Home() {
             {config?.sub_titulo || DEFAULT_CONFIG.sub_titulo}
           </p>
 
+          {activeEvent?.tema?.trim() ? (
+            <h2 id="event-theme-title" className="text-lg md:text-xl font-bold text-indigo-300 mt-4 max-w-lg w-full break-words">
+              {activeEvent.tema.trim()}
+            </h2>
+          ) : null}
+
           {activeEvent ? (
             <div className="flex flex-col items-center gap-2 mt-4">
               <div className="flex items-center gap-3 bg-emerald-500/20 border border-emerald-400/30 px-5 py-2.5 rounded-xl shadow-lg">
@@ -720,8 +728,8 @@ export default function Home() {
                         onClick={() => handleQuickRegister(item.nome, item.sexo)}
                         className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-xs flex items-center gap-2 hover:bg-white/10 transition-colors text-white font-medium cursor-pointer"
                       >
-                        <span className={`font-black ${item.sexo === 'F' ? 'text-pink-400' : 'text-blue-400'}`}>
-                          {item.sexo === 'F' ? '♀️' : '♂️'}
+                        <span className={`font-black ${PARTICIPANT_GENDERS[item.sexo].color}`}>
+                          {PARTICIPANT_GENDERS[item.sexo].icon}
                         </span>
                         <span className="uppercase">+ {item.nome}</span>
                       </button>
@@ -760,7 +768,7 @@ export default function Home() {
                       </div>
                       <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
                         <div className="w-full">
-                          <label htmlFor="input-nome-participante" className="block text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Nome e Sobrenome</label>
+                          <label htmlFor="input-nome-participante" className="block text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">{inputSexo === 'P' ? 'Nome do pet' : 'Nome e Sobrenome'}</label>
                           <div className={`input-glow-wrapper ${(isInputFocused || inputNome.length > 0) ? 'is-active' : ''}`}>
                             <div className="input-inner">
                               <div className="relative">
@@ -774,7 +782,7 @@ export default function Home() {
                                   onChange={(e) => setInputNome(e.target.value)}
                                   onFocus={() => setIsInputFocused(true)}
                                   onBlur={() => setIsInputFocused(false)}
-                                  placeholder="Ex: João Silva"
+                                  placeholder={inputSexo === 'P' ? 'Ex: Luna' : 'Ex: João Silva'}
                                   className="w-full pl-9 pr-4 h-[56px] bg-black/60 border-0 outline-none rounded-[11px] placeholder:text-white/20 text-base font-semibold text-white uppercase"
                                 />
                               </div>
@@ -784,7 +792,7 @@ export default function Home() {
                         <div className="flex flex-col md:flex-row gap-4 items-end">
                           <div className="w-full md:flex-1 shrink-0">
                             <span className="block text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Gênero</span>
-                            <div className="grid grid-cols-2 gap-2 h-[56px]" id="gender-selection-grid">
+                            <div className="grid grid-cols-3 gap-2 h-[56px]" id="gender-selection-grid">
                               <label className={`flex items-center justify-center gap-1.5 rounded-xl border text-sm font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'M' ? 'border-indigo-500/50 bg-indigo-500/20 text-white font-bold shadow-lg shadow-indigo-500/10' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
                                 <input type="radio" name="sexo" value="M" checked={inputSexo === 'M'} onChange={() => setInputSexo('M')} className="sr-only" />
                                 <span className="text-blue-400 font-bold text-base leading-none mt-[1px]">♂️</span>
@@ -794,6 +802,11 @@ export default function Home() {
                                 <input type="radio" name="sexo" value="F" checked={inputSexo === 'F'} onChange={() => setInputSexo('F')} className="sr-only" />
                                 <span className="text-pink-400 font-bold text-base leading-none mt-[1px]">♀️</span>
                                 <span>Feminino</span>
+                              </label>
+                              <label className={`flex flex-col items-center justify-center gap-0.5 rounded-xl border text-xs font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'P' ? 'border-emerald-500/50 bg-emerald-500/20 text-white font-bold shadow-lg' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
+                                <input type="radio" name="sexo" value="P" checked={inputSexo === 'P'} onChange={() => setInputSexo('P')} className="sr-only" />
+                                <span aria-hidden="true">🐱🐶</span>
+                                <span>Pet</span>
                               </label>
                             </div>
                           </div>
@@ -815,7 +828,7 @@ export default function Home() {
                   </h2>
                   <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
                     <div className="w-full">
-                      <label htmlFor="input-nome-participante" className="block text-[10px] md:text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Nome e Sobrenome</label>
+                    <label htmlFor="input-nome-participante" className="block text-[10px] md:text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">{inputSexo === 'P' ? 'Nome do pet' : 'Nome e Sobrenome'}</label>
                       <div className={`input-glow-wrapper ${(isInputFocused || inputNome.length > 0) ? 'is-active' : ''}`}>
                         <div className="input-inner">
                           <div className="relative">
@@ -829,7 +842,7 @@ export default function Home() {
                               onChange={(e) => setInputNome(e.target.value)}
                               onFocus={() => setIsInputFocused(true)}
                               onBlur={() => setIsInputFocused(false)}
-                              placeholder="Ex: João Silva"
+                              placeholder={inputSexo === 'P' ? 'Ex: Luna' : 'Ex: João Silva'}
                               className="w-full pl-9 pr-4 h-[52px] md:h-[56px] bg-black/60 border-0 outline-none rounded-[11px] placeholder:text-white/20 text-sm md:text-base font-semibold text-white uppercase"
                             />
                           </div>
@@ -839,7 +852,7 @@ export default function Home() {
                     <div className="flex flex-col md:flex-row gap-4 items-end">
                       <div className="w-full md:flex-1 shrink-0">
                         <span className="block text-[10px] md:text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Gênero</span>
-                        <div className="grid grid-cols-2 gap-2 h-[52px] md:h-[56px]" id="gender-selection-grid">
+                        <div className="grid grid-cols-3 gap-2 h-[52px] md:h-[56px]" id="gender-selection-grid">
                           <label className={`flex items-center justify-center gap-1.5 rounded-xl border text-xs md:text-sm font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'M' ? 'border-indigo-500/50 bg-indigo-500/20 text-white font-bold shadow-lg shadow-indigo-500/10' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
                             <input type="radio" name="sexo" value="M" checked={inputSexo === 'M'} onChange={() => setInputSexo('M')} className="sr-only" />
                             <span className="text-blue-400 font-bold text-sm md:text-base leading-none mt-[1px]">♂️</span>
@@ -849,6 +862,11 @@ export default function Home() {
                             <input type="radio" name="sexo" value="F" checked={inputSexo === 'F'} onChange={() => setInputSexo('F')} className="sr-only" />
                             <span className="text-pink-400 font-bold text-sm md:text-base leading-none mt-[1px]">♀️</span>
                             <span>Feminino</span>
+                          </label>
+                          <label className={`flex flex-col items-center justify-center gap-0.5 rounded-xl border text-xs font-medium transition-all duration-150 cursor-pointer ${inputSexo === 'P' ? 'border-emerald-500/50 bg-emerald-500/20 text-white font-bold shadow-lg' : 'border-white/25 bg-white/10 text-white/80 hover:bg-white/20'}`}>
+                            <input type="radio" name="sexo" value="P" checked={inputSexo === 'P'} onChange={() => setInputSexo('P')} className="sr-only" />
+                            <span aria-hidden="true">🐱🐶</span>
+                            <span>Pet</span>
                           </label>
                         </div>
                       </div>
@@ -909,8 +927,8 @@ export default function Home() {
                         <div key={p.id} className="group flex justify-between items-center py-1.5 px-3 md:py-1.5 md:px-4 hover:bg-white/5 rounded-lg duration-150 transition-colors">
                           <div className="flex items-center gap-2 pr-2 overflow-hidden">
                             <span className="text-white/30 font-mono text-xs w-4 text-right flex-shrink-0">{index + 1}.</span>
-                            <span className={`flex-shrink-0 font-black text-sm ${p.sexo === 'F' ? 'text-pink-400' : 'text-blue-400'}`} title={p.sexo === 'F' ? 'Feminino' : 'Masculino'}>
-                              {p.sexo === 'F' ? '♀️' : '♂️'}
+                            <span className={`flex-shrink-0 font-black text-sm ${PARTICIPANT_GENDERS[p.sexo].color}`} title={PARTICIPANT_GENDERS[p.sexo].label}>
+                              {PARTICIPANT_GENDERS[p.sexo].icon}
                             </span>
                             <span className="text-sm font-semibold text-white truncate uppercase">
                               {p.nome}
@@ -986,8 +1004,8 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <span className="block text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">RECLASSIFICAR SEXO</span>
-                  <div className="grid grid-cols-2 gap-2">
+                  <span className="block text-xs uppercase tracking-widest text-indigo-300 mb-1.5 font-bold">Gênero</span>
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       type="button"
                       onClick={() => setEditSexo('M')}
@@ -1007,6 +1025,14 @@ export default function Home() {
                         }`}
                     >
                       ♀️ Feminino
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditSexo('P')}
+                      aria-pressed={editSexo === 'P'}
+                      className={`py-2.5 px-2 rounded-lg border text-xs font-bold transition-all ${editSexo === 'P' ? 'border-emerald-500/50 bg-emerald-500/20 text-white shadow-lg' : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'}`}
+                    >
+                      🐱🐶 Pet
                     </button>
                   </div>
                 </div>

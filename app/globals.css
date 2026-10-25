@@ -510,6 +510,12 @@ button, label {
 }
 
 /* ───── GENDER SELECTION ───── */
+  #gender-selection-grid label {
+    flex-direction: column;
+    gap: 0.125rem;
+    font-size: 0.75rem;
+  }
+
 #public-main-root.light-mode #gender-selection-grid label {
   border-color: #e2e0e8 !important;
   color: #5a5a7a !important;
@@ -526,6 +532,16 @@ button, label {
   background: rgba(236, 72, 153, 0.08) !important;
   border: 2px solid #ec4899 !important;
 }
+  #public-main-root.light-mode #gender-selection-grid label:has(input[value="P"]:checked) {
+    color: #059669 !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+    border: 2px solid #10b981 !important;
+  }
+
+  #gender-selection-grid label:has(input:focus-visible) {
+    outline: 2px solid #818cf8;
+    outline-offset: 2px;
+  }
 
 /* ───── FOOTER ───── */
 #public-main-root.light-mode #brand-footer {

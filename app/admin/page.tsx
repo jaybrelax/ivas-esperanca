@@ -21,12 +21,15 @@ import {
   Moon,
   Send,
   Download,
-  Video
+  Video,
+  CheckCircle2
 } from 'lucide-react';
 import {
   Evento,
   ConfigMarca,
   Participant,
+  ParticipantGender,
+  PARTICIPANT_GENDERS,
   DEFAULT_CONFIG,
   fetchBrandingConfig,
   saveBrandingConfig,
@@ -86,6 +89,7 @@ export default function AdminDashboard() {
 
   // Adding new event states
   const [newEventDate, setNewEventDate] = useState('');
+  const [newEventTheme, setNewEventTheme] = useState('');
   const [newEventTime, setNewEventTime] = useState('20:00');
   const [showCreateEventForm, setShowCreateEventForm] = useState(false);
   const [showAddNomeForm, setShowAddNomeForm] = useState(false);
@@ -101,6 +105,8 @@ export default function AdminDashboard() {
   const [editLightMode, setEditLightMode] = useState(false);
   const [editNomesOcultos, setEditNomesOcultos] = useState('');
   const [editLinkReuniao, setEditLinkReuniao] = useState('');
+  const [editHoraPadraoEvento, setEditHoraPadraoEvento] = useState('20:00');
+  const [editBloquearEnvioAntesEvento, setEditBloquearEnvioAntesEvento] = useState(false);
   const [tagInputValue, setTagInputValue] = useState('');
   const [devZoneOpen, setDevZoneOpen] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -120,6 +126,8 @@ export default function AdminDashboard() {
           light_mode: editLightMode,
           nomes_ocultos: editNomesOcultos.trim(),
           link_reuniao: editLinkReuniao.trim(),
+          hora_padrao_evento: editHoraPadraoEvento || DEFAULT_CONFIG.hora_padrao_evento,
+          bloquear_envio_antes_evento: editBloquearEnvioAntesEvento,
           ...overrides,
         };
         const success = await saveBrandingConfig(updated);
@@ -129,7 +137,7 @@ export default function AdminDashboard() {
         }
       } catch {}
     }, 600);
-  }, [config, editTitulo, editSubTitulo, editTitulo2, editLogoUrl, editBannerUrl, editCopyright, editLightMode, editNomesOcultos, editLinkReuniao]);
+  }, [config, editTitulo, editSubTitulo, editTitulo2, editLogoUrl, editBannerUrl, editCopyright, editLightMode, editNomesOcultos, editLinkReuniao, editHoraPadraoEvento, editBloquearEnvioAntesEvento]);
 
   // Password / lock passcode state
   const [passcode, setPasscode] = useState('');
@@ -137,12 +145,12 @@ export default function AdminDashboard() {
 
   // Active event manual participant insertion
   const [adminAddNome, setAdminAddNome] = useState('');
-  const [adminAddSexo, setAdminAddSexo] = useState<'M' | 'F' | null>(null);
+  const [adminAddSexo, setAdminAddSexo] = useState<ParticipantGender | null>(null);
   const [adminAddFixo, setAdminAddFixo] = useState(false);
-  const [filterType, setFilterType] = useState<'all' | 'fixo' | 'M' | 'F'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'fixo' | ParticipantGender>('all');
 
   useEffect(() => {
-    if (filterType === 'M' || filterType === 'F') {
+    if (filterType === 'M' || filterType === 'F' || filterType === 'P') {
       setTimeout(() => {
         setAdminAddSexo(filterType);
       }, 0);
@@ -156,7 +164,7 @@ export default function AdminDashboard() {
   // Editing existing guest
   const [adminEditingParticipantId, setAdminEditingParticipantId] = useState<string | null>(null);
   const [adminEditNomeValue, setAdminEditNomeValue] = useState('');
-  const [adminEditSexoValue, setAdminEditSexoValue] = useState<'M' | 'F'>('M');
+  const [adminEditSexoValue, setAdminEditSexoValue] = useState<ParticipantGender>('M');
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
 
   // Custom non-blocking confirmation dialog overlays
@@ -226,6 +234,9 @@ export default function AdminDashboard() {
       setEditLightMode(brandCnf.light_mode || false);
       setEditNomesOcultos(brandCnf.nomes_ocultos || '');
       setEditLinkReuniao(brandCnf.link_reuniao || '');
+      setEditHoraPadraoEvento(brandCnf.hora_padrao_evento || '20:00');
+      setEditBloquearEnvioAntesEvento(brandCnf.bloquear_envio_antes_evento || false);
+      if (!isEditingEvent) setNewEventTime(brandCnf.hora_padrao_evento || '20:00');
 
       const allEv = await listAllEventos();
       setEvents(allEv);
@@ -301,6 +312,21 @@ export default function AdminDashboard() {
 
   // Update selected event whenever it exists
   const selectedEvent = events.find(e => e.id === selectedEventId);
+  const isSelectedEventDeliveryBlocked = Boolean(
+    selectedEvent &&
+    config.bloquear_envio_antes_evento &&
+    new Date() < new Date(`${selectedEvent.data}T${selectedEvent.hora_inicio || '20:00'}`)
+  );
+
+  const updateDeliveryStatus = async (event: Evento, isSent: boolean) => {
+    const saved = await saveEvento({
+      ...event,
+      lista_enviada: isSent,
+      lista_enviada_em: isSent ? new Date().toISOString() : null,
+    });
+    setEvents(current => current.map(ev => ev.id === saved.id ? saved : ev));
+    return saved;
+  };
 
   // Auto create next logical Friday event
   const handleCreateAutoFriday = () => {
@@ -313,6 +339,7 @@ export default function AdminDashboard() {
   const handleEditEvent = () => {
     if (!selectedEvent) return;
     setNewEventDate(selectedEvent.data);
+    setNewEventTheme(selectedEvent.tema || '');
     setNewEventTime(selectedEvent.hora_inicio || '20:00');
     setIsEditingEvent(true);
     setShowCreateEventForm(true);
@@ -332,6 +359,7 @@ export default function AdminDashboard() {
         const updatedEv: Evento = {
           ...selectedEvent,
           data: newEventDate,
+          tema: newEventTheme.trim(),
           hora_inicio: newEventTime || '20:00',
         };
         const saved = await saveEvento(updatedEv);
@@ -339,6 +367,7 @@ export default function AdminDashboard() {
         setShowCreateEventForm(false);
         setIsEditingEvent(false);
         setNewEventDate('');
+        setNewEventTheme('');
         await loadStatsAndData();
         setSelectedEventId(saved.id);
       } else {
@@ -347,14 +376,18 @@ export default function AdminDashboard() {
           id: 'mock-' + generateId(),
           numero: maxNum + 1,
           data: newEventDate,
+          tema: newEventTheme.trim(),
           hora_inicio: newEventTime || '20:00',
-          nomes: []
+          nomes: [],
+          lista_enviada: false,
+          lista_enviada_em: null
         };
 
         const saved = await saveEvento(newEv);
         showToast(`Oração #${saved.numero} criada com sucesso!`, "success");
         setShowCreateEventForm(false);
         setNewEventDate('');
+        setNewEventTheme('');
         await loadStatsAndData();
         setSelectedEventId(saved.id);
       }
@@ -669,7 +702,12 @@ export default function AdminDashboard() {
                           {showCreateButton && (
                             <button
                               onClick={() => {
-                                setShowCreateEventForm(!showCreateEventForm);
+                                const openingForm = !showCreateEventForm;
+                                setShowCreateEventForm(openingForm);
+                                if (openingForm && !isEditingEvent) {
+                                  setNewEventTime(config.hora_padrao_evento || '20:00');
+                                  setNewEventTheme('');
+                                }
                                 if (showCreateEventForm) setIsEditingEvent(false);
                               }}
                               className={`bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2 px-4 rounded-lg border border-indigo-500/50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md ${showCreateEventForm ? 'bg-indigo-700' : ''}`}
@@ -699,6 +737,20 @@ export default function AdminDashboard() {
                               value={newEventDate}
                               onChange={setNewEventDate}
                             />
+
+                            <div>
+                              <label htmlFor="event-theme" className="block font-bold text-indigo-300 uppercase tracking-widest mb-1.5">Tema da oração</label>
+                              <input
+                                id="event-theme"
+                                type="text"
+                                value={newEventTheme}
+                                onChange={(e) => setNewEventTheme(e.target.value)}
+                                placeholder="Ex: A força da esperança"
+                                aria-describedby="event-theme-help"
+                                className="w-full px-3 py-2.5 bg-black/45 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500 text-sm"
+                              />
+                              <p id="event-theme-help" className="text-xs text-indigo-200/60 mt-1">Opcional. Deixe em branco para ocultar na página pública.</p>
+                            </div>
 
                             <div className="pt-2">
                               <label className="block font-bold text-indigo-300 uppercase tracking-widest mb-1.5">HORA DE INÍCIO</label>
@@ -765,8 +817,11 @@ export default function AdminDashboard() {
                                       }`}
                                   onClick={() => setSelectedEventId(ev.id)}
                                 >
-                                  <span className={`text-base lg:text-base leading-tight ${isSelected ? 'text-white' : 'text-white/50'}`}>
-                                    <span className="font-normal">#</span><span className="font-black">{ev.numero}</span>
+                                  <span className={`text-base lg:text-base leading-tight inline-flex items-center gap-1 ${isSelected ? 'text-white' : 'text-white/50'}`}>
+                                    <span><span className="font-normal">#</span><span className="font-black">{ev.numero}</span></span>
+                                    {ev.lista_enviada && (
+                                      <CheckCircle2 size={15} className="text-emerald-400" aria-label="Lista enviada" />
+                                    )}
                                   </span>
                                   <div className="flex flex-col items-center lg:flex-row lg:items-center gap-1 lg:gap-3">
                                     <span className={`text-[11px] lg:text-base font-semibold leading-tight ${isSelected ? 'text-violet-200' : 'text-white/45'}`}>
@@ -844,7 +899,7 @@ export default function AdminDashboard() {
                               type="text"
                               value={adminAddNome}
                               onChange={(e) => setAdminAddNome(e.target.value)}
-                              placeholder="Nome e Sobrenome"
+                              placeholder={adminAddSexo === 'P' ? 'Nome do pet' : 'Nome e Sobrenome'}
                               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-sm font-semibold text-white focus:outline-none focus:border-indigo-500 placeholder:text-white/30 h-12"
                             />
 
@@ -864,6 +919,14 @@ export default function AdminDashboard() {
                                 >
                                   ♀️ <span className="ml-0.5">Fem.</span>
                                 </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setAdminAddSexo('P')}
+                                  aria-pressed={adminAddSexo === 'P'}
+                                  className={`flex-1 flex items-center justify-center gap-1 text-xs font-bold rounded-lg duration-100 cursor-pointer ${adminAddSexo === 'P' ? 'bg-emerald-600 text-white shadow' : 'text-white/40 hover:text-white'}`}
+                                >
+                                  🐱🐶 <span>Pet</span>
+                                </button>
                               </div>
                               <button
                                 type="submit"
@@ -882,13 +945,13 @@ export default function AdminDashboard() {
 
                           {/* Filters */}
                           <div className="flex bg-black/40 p-1 border border-white/10 rounded-lg overflow-x-auto w-full no-scrollbar">
-                            {(['all', 'M', 'F', 'fixo'] as const).map(type => (
+                            {(['all', 'M', 'F', 'P', 'fixo'] as const).map(type => (
                               <button
                                 key={type}
                                 onClick={() => setFilterType(type)}
                                 className={`flex-1 py-1.5 px-1.5 text-[10px] font-bold rounded uppercase tracking-wider duration-100 cursor-pointer whitespace-nowrap text-center min-w-[40px] ${filterType === type ? 'bg-indigo-500 text-white shadow' : 'text-white/40 hover:text-white'}`}
                               >
-                                {type === 'all' ? 'Todos' : type === 'fixo' ? '📌 Fixos' : type === 'M' ? '♂️ Masc.' : '♀️ Fem.'}
+                                {type === 'all' ? 'Todos' : type === 'fixo' ? '📌 Fixos' : type === 'P' ? '🐱🐶 Pets' : type === 'M' ? '♂️ Masc.' : '♀️ Fem.'}
                               </button>
                             ))}
                           </div>
@@ -909,6 +972,7 @@ export default function AdminDashboard() {
                               if (filterType === 'fixo') return p.isFixo;
                               if (filterType === 'M') return p.sexo === 'M';
                               if (filterType === 'F') return p.sexo === 'F';
+                              if (filterType === 'P') return p.sexo === 'P';
                               return true;
                             }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 
@@ -933,11 +997,12 @@ export default function AdminDashboard() {
                                         />
                                         <select
                                           value={adminEditSexoValue}
-                                          onChange={(e) => setAdminEditSexoValue(e.target.value as 'M' | 'F')}
+                                          onChange={(e) => setAdminEditSexoValue(e.target.value as ParticipantGender)}
                                           className="p-1 px-2.5 bg-black border border-white/10 rounded text-sm font-medium text-white focus:outline-none h-full"
                                         >
                                           <option value="M">♂️ Masculino</option>
                                           <option value="F">♀️ Feminino</option>
+                                          <option value="P">🐱🐶 Pet</option>
                                         </select>
                                         <button
                                           onClick={() => saveEditedParticipant(p.id)}
@@ -958,7 +1023,7 @@ export default function AdminDashboard() {
                                           <span className="font-mono text-sm text-indigo-300 font-bold w-5 shrink-0">
                                             {idx + 1}
                                           </span>
-                                          <span className="shrink-0 text-sm" title={p.sexo === 'F' ? 'Feminino' : 'Masculino'}>{p.sexo === 'F' ? '♀️' : '♂️'}</span>
+                                          <span className="shrink-0 text-sm" title={PARTICIPANT_GENDERS[p.sexo].label}>{PARTICIPANT_GENDERS[p.sexo].icon}</span>
                                           <span className="font-semibold text-white uppercase text-sm">
                                             {p.nome}
                                           </span>
@@ -1073,25 +1138,20 @@ export default function AdminDashboard() {
                       <p className="text-[10px] text-indigo-200/50 font-normal">O link será exibido na página pública apenas após o horário de início do evento.</p>
                     </div>
 
-                    {/* Session toggle: Forçar exibição do botão Nova Oração */}
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-3 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <label className="text-indigo-300 uppercase tracking-widest text-xs font-bold">Habilitar Nova Oração</label>
-                          <p className="text-[10px] text-indigo-200/50 mt-0.5 font-normal">Exibe o botão de criar nova oração mesmo se a data do último evento ainda não passou.</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newVal = !showCreateEventOverride;
-                            setShowCreateEventOverride(newVal);
-                            sessionStorage.setItem('admin_show_create_override', String(newVal));
-                          }}
-                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer shrink-0 ${showCreateEventOverride ? 'bg-indigo-500' : 'bg-white/20'}`}
-                        >
-                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${showCreateEventOverride ? 'translate-x-5' : ''}`} />
-                        </button>
-                      </div>
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                      <label htmlFor="hora-padrao-evento" className="block text-indigo-300 uppercase tracking-widest text-xs font-bold mb-1.5">Horário padrão das próximas orações</label>
+                      <input
+                        id="hora-padrao-evento"
+                        type="time"
+                        value={editHoraPadraoEvento}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setEditHoraPadraoEvento(value);
+                          autoSave({ hora_padrao_evento: value });
+                        }}
+                        className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500 font-mono text-sm"
+                      />
+                      <p className="text-[10px] text-indigo-200/50 mt-1 font-normal">Aplicado somente a novos eventos; os horários já criados não mudam.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1136,6 +1196,43 @@ export default function AdminDashboard() {
                         rows={3}
                         className="w-full px-3 py-2.5 bg-black/40 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500 font-medium resize-none"
                       />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between gap-3">
+                        <div>
+                          <label className="text-indigo-300 uppercase tracking-widest text-xs font-bold">Habilitar Nova Oração</label>
+                          <p className="text-[10px] text-indigo-200/50 mt-0.5 font-normal">Exibe o botão de criar nova oração mesmo se a data do último evento ainda não passou.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newVal = !showCreateEventOverride;
+                            setShowCreateEventOverride(newVal);
+                            sessionStorage.setItem('admin_show_create_override', String(newVal));
+                          }}
+                          className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer shrink-0 ${showCreateEventOverride ? 'bg-indigo-500' : 'bg-white/20'}`}
+                        >
+                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${showCreateEventOverride ? 'translate-x-5' : ''}`} />
+                        </button>
+                      </div>
+
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between gap-3">
+                        <div>
+                          <label className="text-indigo-300 uppercase tracking-widest text-xs font-bold">Bloquear envio antes da oração</label>
+                          <p className="text-[10px] text-indigo-200/50 mt-1 font-normal">Impede o envio ao grupo até chegar o horário de início do ritual.</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={editBloquearEnvioAntesEvento}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setEditBloquearEnvioAntesEvento(checked);
+                            autoSave({ bloquear_envio_antes_evento: checked });
+                          }}
+                          className="h-5 w-5 accent-indigo-500 cursor-pointer shrink-0"
+                        />
+                      </div>
                     </div>
 
                     {/* Nomes Ocultos */}
@@ -1476,9 +1573,21 @@ export default function AdminDashboard() {
                   const allFiltered = all.filter(p => !nomesOcultosArr.includes(p.nome.trim().toLowerCase()));
                   const m = allFiltered.filter(p => p.sexo === 'M').length;
                   const f = allFiltered.filter(p => p.sexo === 'F').length;
-                  return `${allFiltered.length} nomes • ${m} irmãos • ${f} irmãs`;
+                  const pets = allFiltered.filter(p => p.sexo === 'P').length;
+                  return `${allFiltered.length} nomes • ${m} irmãos • ${f} irmãs • ${pets} pets`;
                 })()}
               </p>
+              <div className={`mb-5 rounded-lg border px-3 py-2 text-xs font-semibold flex items-center justify-center gap-1.5 ${selectedEvent.lista_enviada ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : 'border-amber-500/30 bg-amber-500/10 text-amber-100'}`}>
+                <CheckCircle2 size={15} />
+                {selectedEvent.lista_enviada
+                  ? `Lista já enviada${selectedEvent.lista_enviada_em ? ` em ${new Date(selectedEvent.lista_enviada_em).toLocaleString('pt-BR')}` : ''}.`
+                  : 'Lista ainda não foi enviada.'}
+              </div>
+              {isSelectedEventDeliveryBlocked && (
+                <p className="mb-5 text-xs text-red-200 bg-red-500/10 border border-red-500/25 rounded-lg px-3 py-2">
+                  O envio está bloqueado até o início desta oração: {new Date(`${selectedEvent.data}T${selectedEvent.hora_inicio || '20:00'}`).toLocaleString('pt-BR')}.
+                </p>
+              )}
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                 <button
                   type="button"
@@ -1490,9 +1599,13 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   type="button"
-                  disabled={sendingWebhook}
+                  disabled={sendingWebhook || isSelectedEventDeliveryBlocked}
                   onClick={async () => {
                     if (!config.copyright) return;
+                    if (isSelectedEventDeliveryBlocked) {
+                      showToast('O envio só será liberado após o horário de início da oração.', 'error');
+                      return;
+                    }
                     setSendingWebhook(true);
                     const all = [
                       ...(config.nomes_fixo?.filter(f => !selectedEvent.nomes.some(n => n.id === f.id)) || []).map(p => ({ ...p, isFixo: true })),
@@ -1504,6 +1617,7 @@ export default function AdminDashboard() {
                     const allFiltered = all.filter(p => !nomesOcultosArr.includes(p.nome.trim().toLowerCase()));
                     const masculino = allFiltered.filter(p => p.sexo === 'M').map(p => p.nome);
                     const feminino = allFiltered.filter(p => p.sexo === 'F').map(p => p.nome);
+                    const pets = allFiltered.filter(p => p.sexo === 'P').map(p => p.nome);
                     const payload = {
                       evento: {
                         numero: selectedEvent.numero,
@@ -1513,6 +1627,7 @@ export default function AdminDashboard() {
                       },
                       masculino,
                       feminino,
+                      pets,
                     };
                     try {
                       const res = await fetch('/api/webhook-proxy', {
@@ -1524,6 +1639,7 @@ export default function AdminDashboard() {
                         const err = await res.json().catch(() => ({}));
                         throw new Error(err.error || `HTTP ${res.status}`);
                       }
+                      await updateDeliveryStatus(selectedEvent, true);
                       showToast('Lista enviada com sucesso! ✅');
                     } catch (err: any) {
                       showToast(`Falha ao enviar: ${err.message || 'erro desconhecido'}`, 'error');

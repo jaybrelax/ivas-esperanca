@@ -1,10 +1,18 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Types representing our data models
+export type ParticipantGender = 'M' | 'F' | 'P';
+
+export const PARTICIPANT_GENDERS = {
+  M: { label: 'Masculino', icon: '♂️', color: 'text-blue-400' },
+  F: { label: 'Feminino', icon: '♀️', color: 'text-pink-400' },
+  P: { label: 'Pet', icon: '🐱🐶', color: 'text-emerald-400' },
+} as const;
+
 export interface Participant {
   id: string;
   nome: string;
-  sexo: 'M' | 'F';
+  sexo: ParticipantGender;
   criado_em: string;
   device_id: string;
   isFixo?: boolean;
@@ -15,7 +23,10 @@ export interface Evento {
   numero: number;
   data: string;
   hora_inicio: string;
+  tema?: string;
   nomes: Participant[];
+  lista_enviada?: boolean;
+  lista_enviada_em?: string | null;
   created_at?: string;
 }
 
@@ -31,6 +42,8 @@ export interface ConfigMarca {
   nomes_ocultos?: string;
   link_reuniao?: string;
   recesso?: boolean;
+  hora_padrao_evento?: string;
+  bloquear_envio_antes_evento?: boolean;
 }
 
 // Default values for brand configuration
@@ -45,7 +58,9 @@ export const DEFAULT_CONFIG: ConfigMarca = {
   light_mode: false,
   nomes_ocultos: "",
   link_reuniao: "",
-  recesso: false
+  recesso: false,
+  hora_padrao_evento: "20:00",
+  bloquear_envio_antes_evento: false
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -273,6 +288,8 @@ export async function fetchBrandingConfig(): Promise<ConfigMarca> {
               nomes_ocultos: data.nomes_ocultos || "",
               link_reuniao: data.link_reuniao || "",
               recesso: data.recesso || false,
+              hora_padrao_evento: data.hora_padrao_evento?.slice(0, 5) || DEFAULT_CONFIG.hora_padrao_evento,
+              bloquear_envio_antes_evento: data.bloquear_envio_antes_evento || false,
             };
           }
           return getLocalConfig();
@@ -316,6 +333,8 @@ export async function saveBrandingConfig(config: ConfigMarca): Promise<boolean> 
               nomes_ocultos: config.nomes_ocultos,
               link_reuniao: config.link_reuniao,
               recesso: config.recesso,
+              hora_padrao_evento: config.hora_padrao_evento || DEFAULT_CONFIG.hora_padrao_evento,
+              bloquear_envio_antes_evento: config.bloquear_envio_antes_evento || false,
               updated_at: new Date().toISOString()
             })
             .eq('id', 'default');
@@ -334,7 +353,9 @@ export async function saveBrandingConfig(config: ConfigMarca): Promise<boolean> 
               light_mode: config.light_mode || false,
               nomes_ocultos: config.nomes_ocultos || "",
               link_reuniao: config.link_reuniao || "",
-              recesso: config.recesso || false
+              recesso: config.recesso || false,
+              hora_padrao_evento: config.hora_padrao_evento || DEFAULT_CONFIG.hora_padrao_evento,
+              bloquear_envio_antes_evento: config.bloquear_envio_antes_evento || false
             });
         }
         
@@ -368,7 +389,10 @@ export async function listAllEventos(): Promise<Evento[]> {
               numero: ev.numero,
               data: ev.data,
               hora_inicio: ev.hora_inicio || '20:00',
-              nomes: (typeof ev.nomes === 'string' ? JSON.parse(ev.nomes) : ev.nomes) || [] // double safeguards JSON content
+              tema: ev.tema || '',
+              nomes: (typeof ev.nomes === 'string' ? JSON.parse(ev.nomes) : ev.nomes) || [], // double safeguards JSON content
+              lista_enviada: ev.lista_enviada || false,
+              lista_enviada_em: ev.lista_enviada_em || null
             }));
           }
           console.warn("Failed to find 'eventos' table inside Supabase, using Local Storage list instead.", error);
@@ -412,7 +436,10 @@ export async function saveEvento(evento: Evento): Promise<Evento> {
         .update({
           data: evento.data,
           hora_inicio: evento.hora_inicio,
-          nomes: evento.nomes // Supabase supports direct JSON upload or stringified JSON
+          tema: evento.tema?.trim() || '',
+          nomes: evento.nomes, // Supabase supports direct JSON upload or stringified JSON
+          lista_enviada: evento.lista_enviada || false,
+          lista_enviada_em: evento.lista_enviada_em || null
         })
         .eq('id', evento.id)
         .select()
@@ -429,7 +456,10 @@ export async function saveEvento(evento: Evento): Promise<Evento> {
           numero: data.numero,
           data: data.data,
           hora_inicio: data.hora_inicio,
-          nomes: typeof data.nomes === 'string' ? JSON.parse(data.nomes) : data.nomes
+          tema: data.tema || '',
+          nomes: typeof data.nomes === 'string' ? JSON.parse(data.nomes) : data.nomes,
+          lista_enviada: data.lista_enviada || false,
+          lista_enviada_em: data.lista_enviada_em || null
         };
       }
     } else {
@@ -440,7 +470,10 @@ export async function saveEvento(evento: Evento): Promise<Evento> {
           numero: evento.numero,
           data: evento.data,
           hora_inicio: evento.hora_inicio,
-          nomes: evento.nomes
+          tema: evento.tema?.trim() || '',
+          nomes: evento.nomes,
+          lista_enviada: evento.lista_enviada || false,
+          lista_enviada_em: evento.lista_enviada_em || null
         }])
         .select()
         .single();
@@ -456,7 +489,10 @@ export async function saveEvento(evento: Evento): Promise<Evento> {
           numero: data.numero,
           data: data.data,
           hora_inicio: data.hora_inicio,
-          nomes: typeof data.nomes === 'string' ? JSON.parse(data.nomes) : data.nomes
+          tema: data.tema || '',
+          nomes: typeof data.nomes === 'string' ? JSON.parse(data.nomes) : data.nomes,
+          lista_enviada: data.lista_enviada || false,
+          lista_enviada_em: data.lista_enviada_em || null
         };
       }
     }
@@ -481,7 +517,7 @@ export async function saveEvento(evento: Evento): Promise<Evento> {
 }
 
 // Add participant to an event
-export async function addParticipantToEvento(eventoId: string, name: string, gender: 'M' | 'F', deviceId: string): Promise<Evento | null> {
+export async function addParticipantToEvento(eventoId: string, name: string, gender: ParticipantGender, deviceId: string): Promise<Evento | null> {
   const events = await listAllEventos();
   const target = events.find(e => e.id === eventoId);
   if (!target) return null;
@@ -517,7 +553,7 @@ export async function addParticipantToEvento(eventoId: string, name: string, gen
 }
 
 // Add multiple participants to an event at once
-export async function addParticipantsToEvento(eventoId: string, participants: { nome: string; sexo: 'M' | 'F' }[], deviceId: string): Promise<Evento | null> {
+export async function addParticipantsToEvento(eventoId: string, participants: { nome: string; sexo: ParticipantGender }[], deviceId: string): Promise<Evento | null> {
   const events = await listAllEventos();
   const target = events.find(e => e.id === eventoId);
   if (!target) return null;
@@ -560,7 +596,7 @@ export async function addParticipantsToEvento(eventoId: string, participants: { 
 }
 
 // Edit an existing participant
-export async function editParticipantInEvento(eventoId: string, participantId: string, updatedName: string, updatedGender: 'M' | 'F'): Promise<Evento | null> {
+export async function editParticipantInEvento(eventoId: string, participantId: string, updatedName: string, updatedGender: ParticipantGender): Promise<Evento | null> {
   const events = await listAllEventos();
   const target = events.find(e => e.id === eventoId);
   if (!target) return null;
@@ -661,7 +697,9 @@ export async function createNextFridayEvento(fixedHour: string = '20:00'): Promi
     numero: maxNum + 1,
     data: dateStr,
     hora_inicio: fixedHour,
-    nomes: []
+    nomes: [],
+    lista_enviada: false,
+    lista_enviada_em: null
   };
   
   return await saveEvento(newEvent);
